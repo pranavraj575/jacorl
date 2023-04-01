@@ -4,8 +4,7 @@ import random
 import numpy as np 
 import rospy
 
-from stable_baselines.common.env_checker import check_env
-
+# from stable_baselines.common.env_checker import check_env
 
 # first launch Jaco in Gazebo with
 # roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s300
@@ -17,9 +16,9 @@ rospy.init_node("kinova_client", anonymous=True, log_level=rospy.INFO)
 env = gym.make('JacoGazebo-v1')
 
 ## It will check your custom environment and output additional warnings if needed
-print("starting check")
-check_env(env, warn=True)
-print("check done")
+# print("starting check")
+# check_env(env, warn=True)
+# print("check done")
 
 
 print('Action space:')

@@ -5,8 +5,19 @@
   <world name="default">
     <include>
       <uri>model://ground_plane</uri>
+      <pose>0 0 -1 0 0 0</pose>
+    </include>
+    
+    <include>
+      <uri>model://fable</uri>
+      <pose>-.85 0 -1 0 0 0</pose>
     </include>
 
+    <include>
+      <uri>model://solo_cup</uri>
+      <pose>-.9 0 .1 0 0 -2.06</pose>
+    </include>
+    
     <!-- Global light source -->
     <include>
       <uri>model://sun</uri>
@@ -19,20 +30,6 @@
         <view_controller>orbit</view_controller>
       </camera>
     </gui>
-
-    <!-- Added by Pierre: simulation speed -->
-    <physics type="ode">
-      <max_step_size>0.0023</max_step_size>
-      <real_time_update_rate>10000</real_time_update_rate>
-     <!--  <real_time_factor>1</real_time_factor>  -->
-    </physics>
-
-    <include>
-      <uri>model://table</uri>
-      <pose>-.85 0 -1 0 0 0</pose>
-      <static>true</static>
-    </include>
-
 
   </world>
 </sdf>

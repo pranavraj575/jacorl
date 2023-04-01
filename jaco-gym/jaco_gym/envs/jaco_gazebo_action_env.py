@@ -6,7 +6,8 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 from jaco_gym.envs.ros_scripts.jaco_gazebo_action_client import JacoGazeboActionClient
 
-
+# tableMinX = -9
+# tableMaxX = 9
 
 class JacoEnv(gym.Env):
 

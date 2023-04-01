@@ -1,4 +1,3 @@
-README.md
 setup.py
 jaco_gym.egg-info/PKG-INFO
 jaco_gym.egg-info/SOURCES.txt
