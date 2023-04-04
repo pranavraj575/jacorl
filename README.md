@@ -40,7 +40,7 @@ sudo apt-get install ros-<distro>-controller-*
 (replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
 
 
-5. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from requirements).
+5. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from setup.py).
 
 ```bash
 cd ~/catkin_ws
