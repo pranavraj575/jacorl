@@ -48,7 +48,6 @@ rm -rf src
 git clone https://github.com/pranavraj575/jacorl src
 cd src/jaco-gym
 pip3 install -e .
-pip3 install -r requirements.txt
 ```
 
 6. Install the ROS packages and build.
@@ -60,18 +59,6 @@ catkin init
 catkin_make
 ```
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
-
-8. Install the dependencies for [RL Baselines Zoo](https://github.com/araffin/rl-baselines-zoo).
-```bash
-
-pip3 install box2d box2d-kengz pyyaml optuna pytablewriter
-```
-
-9. Install [Tensorflow 1.14](https://www.tensorflow.org/). Stable-baselines does not yet support Tensorflow 2.
-
-```bash
-pip3 install tensorflow-gpu==1.14
-```
 
 
 ## Test your environment
