@@ -1,1 +1,9 @@
-gym
+gym==0.15.7
+scipy>=1.1.0
+rospkg
+box2d
+box2d-kengz
+pyyaml
+optuna
+pytablewriter
+tensorflow-gpu==1.14
