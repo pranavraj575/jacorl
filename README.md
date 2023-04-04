@@ -1,8 +1,4 @@
-# Jaco Gym Environment
-An OpenAI Gym environment for the Jaco2 robotic arm by Kinova.
-The environment is implemented both for the real arm and the Gazebo simulator. 
-The goal is to bring the arm's end effector as close as possible to the target green ball.
-The target object position is initialised randomly at the beginning of each episode.
+# Kinova Jaco2 RL Environment
 
 
 ![Jaco Gazebo](/images/jaco_training.gif)
@@ -17,11 +13,13 @@ The target object position is initialised randomly at the beginning of each epis
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
 
-To use ROS with Python 3, run:
+sudo install stuff:
 
 ```bash
+sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
 sudo apt-get install python3-pip
 sudo pip3 install rospkg catkin_pkg
+sudo apt-get install swig ffmpeg
 ```
 
 2. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
@@ -42,41 +40,30 @@ sudo apt-get install ros-<distro>-controller-*
 (replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
 
 
-4. Install [Gym](https://github.com/openai/gym).
+5. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from requirements).
 
 ```bash
-pip3 install gym
-```
-
-5. Install [jaco-gym](https://github.com/PierreExeter/jaco-gym.git).
-
-```bash
-git clone https://github.com/PierreExeter/jaco-gym.git
-cd jaco-gym
+cd ~/catkin_ws
+rm -rf src
+git clone https://github.com/pranavraj575/jacorl src
+cd src/jaco-gym
 pip3 install -e .
+pip3 install -r requirements.txt
 ```
 
 6. Install the ROS packages and build.
 
 ```bash
-cp -r ROS_packages/sphere_description ~/catkin_ws/src
-cp -r ROS_packages/kinova-ros ~/catkin_ws/src
 cd ~/catkin_ws
+catkin clean
+catkin init
 catkin_make
 ```
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
 
-
-7. Install the RL library [Stable-baselines](https://github.com/pirobot/stable-baselines).
-
-```bash
-sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
-pip3 install stable-baselines[mpi]
-```
-
 8. Install the dependencies for [RL Baselines Zoo](https://github.com/araffin/rl-baselines-zoo).
 ```bash
-sudo apt-get install swig ffmpeg
+
 pip3 install box2d box2d-kengz pyyaml optuna pytablewriter
 ```
 
