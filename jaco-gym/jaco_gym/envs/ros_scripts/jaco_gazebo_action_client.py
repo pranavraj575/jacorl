@@ -3,6 +3,7 @@
 import actionlib
 import rospy
 import numpy as np
+import random
 
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -127,7 +128,22 @@ class JacoGazeboActionClient:
         # print(model_state_msg)
         
         self.pub.publish(model_state_msg)
-
+    
+    def randomize_cups(self, seed):
+        cup_names = ["cup1", "cup2", "cup3"]
+        random.seed(seed)
+        for i in range(len(cup_names)):
+            model_state_msg = ModelState()
+            pose_msg = Pose()
+            point_msg = Point()
+            point_msg.x = random.uniform(-1.5, -0.5)
+            point_msg.y = random.uniform(-0.5, 0.5)
+            point_msg.z = 0.013
+            pose_msg.position = point_msg
+            model_state_msg.model_name = cup_names[i]
+            model_state_msg.pose = pose_msg
+            model_state_msg.reference_frame = "world"
+            self.pub.publish(model_state_msg)
 
 
     def cancel_move(self):

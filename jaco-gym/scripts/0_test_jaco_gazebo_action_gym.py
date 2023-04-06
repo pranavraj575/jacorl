@@ -1,5 +1,5 @@
-import gym
-import jaco_gym
+#import gym
+#import jaco_gym
 import random
 import numpy as np 
 import rospy
