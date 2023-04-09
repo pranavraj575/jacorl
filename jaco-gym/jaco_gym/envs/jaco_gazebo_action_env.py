@@ -1,9 +1,9 @@
-#import gym
+import gym
 import numpy as np
 import random
 
-#from gym import error, spaces, utils
-#from gym.utils import seeding
+from gym import error, spaces, utils
+from gym.utils import seeding
 from jaco_gym.envs.ros_scripts.jaco_gazebo_action_client import JacoGazeboActionClient
 
 class JacoEnv(gym.Env):
@@ -109,7 +109,7 @@ class JacoEnv(gym.Env):
 
         # if testing: graphically move the sphere target, if training, comment this line
         # self.robot.move_sphere(self.target_vect)
-        self.robot.randomize_cups(0)
+        self.robot.randomize_cups()
 
         return self.obs
 

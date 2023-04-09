@@ -129,9 +129,11 @@ class JacoGazeboActionClient:
         
         self.pub.publish(model_state_msg)
     
-    def randomize_cups(self, seed):
+    def randomize_cups(self, seed=None,ranges=((-1.5,-.5),(-.5,.5))):
         cup_names = ["cup1", "cup2", "cup3"]
-        random.seed(seed)
+        print('RANDOMING')
+        if seed:
+            random.seed(seed)
         for i in range(len(cup_names)):
             model_state_msg = ModelState()
             pose_msg = Pose()
