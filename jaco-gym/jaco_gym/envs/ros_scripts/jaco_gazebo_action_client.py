@@ -9,7 +9,7 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from gazebo_msgs.msg import LinkStates, ModelState
 from std_srvs.srv import Empty
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, CameraInfo, Image, CompressedImage
 from geometry_msgs.msg import Pose, Point
 
 
@@ -150,7 +150,12 @@ class JacoGazeboActionClient:
 
     def cancel_move(self):
         self.client.cancel_all_goals()
-
+    
+    def get_image(self):
+        camera_info = rospy.wait_for_message("/wristcam/camera_info", CameraInfo)
+        raw = rospy.wait_for_message("/wristcam/image_raw",Image)
+        compressed = rospy.wait_for_message("/wristcam/image_raw/compressed",CompressedImage)
+        return camera_info,raw,compressed
 
     def read_state_old(self):
         self.status = rospy.wait_for_message("/j2n6s300/effort_joint_trajectory_controller/state", JointTrajectoryControllerState)

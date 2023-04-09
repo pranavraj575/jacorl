@@ -44,6 +44,10 @@ for episode in range(3):
 
     obs = env.reset()
     rewards = []
+    print('IMAgE:')
+    camera_info,raw,compressed=env.robot.get_image()
+    print('image recieved')
+    #print(cam)
 
     for t in range(5):
 
