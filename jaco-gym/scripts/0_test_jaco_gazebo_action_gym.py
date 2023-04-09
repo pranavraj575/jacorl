@@ -20,6 +20,7 @@ env = gym.make('JacoGazebo-v1')
 # check_env(env, warn=True)
 # print("check done")
 
+#test
 
 print('Action space:')
 print(env.action_space)
@@ -47,6 +48,7 @@ for episode in range(3):
     for t in range(5):
 
         action = env.action_space.sample()
+        #action = [0,1,0,1,0,1]
         obs, reward, done, info = env.step(action)
 
         print("timestep:", t)

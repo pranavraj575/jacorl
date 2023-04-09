@@ -40,7 +40,7 @@ sudo apt-get install ros-<distro>-controller-*
 (replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
 
 
-5. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from setup.py).
+4. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from setup.py).
 
 ```bash
 cd ~/catkin_ws
@@ -48,6 +48,16 @@ rm -rf src
 git clone https://github.com/pranavraj575/jacorl src
 cd src/jaco-gym
 pip3 install -e .
+cd ../rlkit
+pip3 install -e .
+```
+
+5. either run every time or add to bashrc
+
+```bash
+cd ~/catkin_ws
+source devel/setup.bash
+export GAZEBO_MODEL_PATH=~/catkin_ws/src/kinova-ros/kinova_gazebo/models
 ```
 
 6. Install the ROS packages and build.
