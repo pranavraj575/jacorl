@@ -1,9 +1,13 @@
 #from gym.envs.mujoco import HalfCheetahEnv
-
+import gym
+import jaco_gym
+import random
+import numpy as np 
+import rospy
 import rlkit.torch.pytorch_util as ptu
 from rlkit.data_management.env_replay_buffer import EnvReplayBuffer
 #from rlkit.envs.wrappers import NormalizedBoxEnv
-from jaco_gym.envs.jaco_gazebo_action_env.py import JacoEnv #Added this line
+from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
 from rlkit.launchers.launcher_util import setup_logger
 from rlkit.samplers.data_collector import MdpPathCollector
 from rlkit.torch.sac.policies import TanhGaussianPolicy, MakeDeterministic
@@ -107,6 +111,11 @@ if __name__ == "__main__":
             use_automatic_entropy_tuning=True,
         ),
     )
+    rospy.init_node("kinova_client", anonymous=True, log_level=rospy.INFO)
+    env_id = 'JacoGazebo-v1'
+    env = gym.make(env_id)
+    env.reset()
+    experiment(variant)
+    env.close()
     setup_logger('name-of-experiment', variant=variant)
     # ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)
-    experiment(variant)
