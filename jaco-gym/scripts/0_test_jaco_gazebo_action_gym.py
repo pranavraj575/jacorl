@@ -20,6 +20,7 @@ env = gym.make('JacoGazebo-v1')
 # check_env(env, warn=True)
 # print("check done")
 
+#test
 
 print('Action space:')
 print(env.action_space)
