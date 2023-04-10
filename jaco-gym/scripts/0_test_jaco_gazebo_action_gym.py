@@ -3,6 +3,7 @@ import jaco_gym
 import random
 import numpy as np 
 import rospy
+import ros_numpy
 
 # from stable_baselines.common.env_checker import check_env
 
@@ -32,7 +33,6 @@ print(env.observation_space)
 print(env.observation_space.high)
 print(env.observation_space.low)
 
-
 # obs = env.reset()
 # action = env.action_space.sample()
 # print('random action:', action)
@@ -41,12 +41,21 @@ print(env.observation_space.low)
 render_flag=True
 
 for episode in range(3):
-
+    #run rostopic list to get all topics being published (while robot running)
     obs = env.reset()
     rewards = []
     print('IMAgE:')
     camera_info,raw,compressed=env.robot.get_image()
+    # camera_info
+    # robot = 
     print('image recieved')
+    print("camera info")
+    #print("-------------")
+    #print(camera_info)
+    print("camera raw")
+    img_numpy = ros_numpy.numpify(raw)
+    print(img_numpy.shape)
+    #print(raw.shape())
     #print(cam)
 
     for t in range(5):
