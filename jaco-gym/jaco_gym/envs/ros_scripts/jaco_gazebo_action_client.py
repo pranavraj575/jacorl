@@ -4,6 +4,7 @@ import actionlib
 import rospy
 import numpy as np
 import random
+import math
 
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -170,22 +171,40 @@ class JacoGazeboActionClient:
         
         self.pub.publish(model_state_msg)
     
-    def randomize_cups(self, seed=None,ranges=((-.5,1),(-.45,.45),(.013,.013))):
+    def has_collision(self,x,y,positions):
+        for pos in positions:
+            x2 = pos[0]
+            y2 = pos[1]
+            dist = math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y))
+            if(dist <= 0.08):
+                return True
+        return False
+
+    def randomize_cups(self, seed=None,ranges=((-1.5,-0.3),(-.29,.29))):
         cup_names = ["cup1", "cup2", "cup3"]
         if seed:
             random.seed(seed)
+        positions = []
         for cup_name in cup_names:
             model_state_msg = ModelState()
             pose_msg = Pose()
             point_msg = Point()
-            point_msg.x = random.uniform(ranges[0][0],ranges[0][1])
-            point_msg.y = random.uniform(ranges[1][0],ranges[1][1])
-            point_msg.z = random.uniform(ranges[2][0],ranges[2][1])
+            x = random.uniform(ranges[0][0],ranges[0][1])
+            y = random.uniform(ranges[1][0],ranges[1][1])
+            while(self.has_collision(x,y,positions)):
+                x = random.uniform(ranges[0][0],ranges[0][1])
+                y = random.uniform(ranges[1][0],ranges[1][1])
+            positions.append((x,y))
+            point_msg.x = x
+            point_msg.y = y
+            point_msg.z = 0
+            #print("Moving " + cup_name + "to position %d %d",x,y)
             pose_msg.position = point_msg
             model_state_msg.model_name = cup_name
             model_state_msg.pose = pose_msg
             model_state_msg.reference_frame = "world"
             self.pub.publish(model_state_msg)
+            rospy.sleep(.1)
 
 
     def cancel_move(self):
