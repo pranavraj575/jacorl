@@ -19,7 +19,7 @@ class JacoEnv(gym.Env):
         high = np.inf * np.ones([self.obs_dim])
         self.observation_space = gym.spaces.Box(-high, high)
         self.table_y_range=(-0.29,0.29)
-        self.cup_ranges=((-1.4,-0.31),table_y_range)
+        self.cup_ranges=((-1.4,-0.31),self.table_y_range)
         self.cup_goal_x = -0.3 # or below
         
 
@@ -53,15 +53,19 @@ class JacoEnv(gym.Env):
         self.dist_to_target = np.linalg.norm(self.tip_coord - self.target_vect)
         self.reward = - self.dist_to_target 
 
-        for((x,y) in self.cup_positions):
+        closest_dist = 1000
+        for (x,y) in self.cup_positions:
+            # ADD THE REWARD FOR ROBOT TO CLOSEST CUP
             # Assign a negative reward for each cup that is off the table
             if (y > self.table_y_range[1] or y < self.table_y_range[0]):
                 self.reward -= 50
-            else{
-                # Assign postive reward proportional to how close each cup is from
-                # its goal x position
-                dist_to_goal = math.abs(x-self.cup_goal_x)
-            }
+            else:  # Large positive reward for each cup in the goal zone
+                if(x >= self.cup_goal_x):
+                    self.reward += 100
+                else: # Negative reward for cups farther from goal
+                    dist_to_goal = self.cup_goal_x - x
+                    self.reward -= dist_to_goal * 10
+            
 
         #===========================================================#
        
