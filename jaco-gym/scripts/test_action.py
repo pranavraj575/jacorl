@@ -22,12 +22,7 @@ client = actionlib.SimpleActionClient(action_address, FollowJointTrajectoryActio
 client.wait_for_server()
 goal = FollowJointTrajectoryGoal()
     
-trajectory_msg = JointTrajectory()
 
-trajectory_msg.joint_names = [
-            "j2n6s300_joint_finger_1", 
-            "j2n6s300_joint_finger_2", 
-            "j2n6s300_joint_finger_3"]
 
 #trajectory_msg.joint_names = [
 #            "j2n6s300_joint_1", 
@@ -37,30 +32,41 @@ trajectory_msg.joint_names = [
 #            "j2n6s300_joint_5", 
 #            "j2n6s300_joint_6"
 #            ]
-
-
-points_msg = JointTrajectoryPoint()
-points_msg.positions=[3,3,0]
-
-points_msg.velocities = [0, 0,0]
-points_msg.accelerations = [0, 0, 0]
-points_msg.effort = [0, 0, 0]
-
-
 #points_msg.positions = [ 0,3.14, 3.14, 0, 0, 0]
 
 
 #points_msg.velocities = [0, 0, 0, 0, 0, 0]
 #points_msg.accelerations = [0, 0, 0, 0, 0, 0]
 #points_msg.effort = [0, 0, 0, 0, 0, 0]
-points_msg.time_from_start = rospy.Duration(0.01)
 
-# fill in points message of the trajectory message
-trajectory_msg.points = [points_msg]
+grab=input('grabbyness (looks like this specific way is on [0,pi/2]): ')
 
-# fill in trajectory message of the goal
-goal.trajectory = trajectory_msg
+while grab:
+    trajectory_msg = JointTrajectory()
+    
+    trajectory_msg.joint_names = [
+                "j2n6s300_joint_finger_1", 
+                "j2n6s300_joint_finger_2", 
+                "j2n6s300_joint_finger_3"]
+                
+    points_msg = JointTrajectoryPoint()
+    points_msg.positions=[float(grab)]*3#[0,0,0]
+    
+    points_msg.velocities = [0, 0,0]
+    points_msg.accelerations = [0, 0, 0]
+    points_msg.effort = [0, 0, 0]
 
-# self.client.send_goal_and_wait(goal)
-client.send_goal(goal)
-client.wait_for_result()
+
+
+    points_msg.time_from_start = rospy.Duration(0.01)
+    
+    # fill in points message of the trajectory message
+    trajectory_msg.points = [points_msg]
+    
+    # fill in trajectory message of the goal
+    goal.trajectory = trajectory_msg
+    
+    # self.client.send_goal_and_wait(goal)
+    client.send_goal(goal)
+    client.wait_for_result()
+    grab=input('grabbyness: ')
