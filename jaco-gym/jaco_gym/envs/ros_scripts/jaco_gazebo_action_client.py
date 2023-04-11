@@ -135,42 +135,6 @@ class JacoGazeboActionClient:
 
         # return self.client.get_state()
 
-    def move_sphere(self, coords_list):
-
-        model_state_msg = ModelState()
-        # check msg structure with: rosmsg info gazebo_msgs/ModelState
-        # It is composed of 4 sub-messages:
-        # model_name of type string
-        # pose of type geometry_msgs/Pose
-        # twist of type geometry_msgs/Twist 
-        # reference_frame of type string
-
-        pose_msg = Pose()
-        # rosmsg info geometry_msgs/Pose
-        # It is composed of 2 sub-messages
-        # position of type geometry_msgs/Point
-        # orientation of type geometry_msgs/Quaternion 
-
-        point_msg = Point()
-        # rosmsg info geometry_msgs/Point
-        # It is composed of 3 sub-messages
-        # x of type float64
-        # y of type float64
-        # z of type float64
-        point_msg.x = coords_list[0]
-        point_msg.y = coords_list[1]
-        point_msg.z = coords_list[2]
-
-        pose_msg.position = point_msg
-
-        model_state_msg.model_name = "my_sphere3"
-        model_state_msg.pose = pose_msg
-        model_state_msg.reference_frame = "world"
-
-        # print(model_state_msg)
-        
-        self.pub.publish(model_state_msg)
-
     def move_cups(self, positions):
         cup_names = ["cup1", "cup2", "cup3"]
         for z in [-1,0]:

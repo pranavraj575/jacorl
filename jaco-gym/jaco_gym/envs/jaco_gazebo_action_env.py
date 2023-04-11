@@ -50,8 +50,9 @@ class JacoEnv(gym.Env):
         #===================== Calculate Reward ====================#
 
         self.tip_coord = self.robot.get_tip_coord()
-        self.dist_to_target = np.linalg.norm(self.tip_coord - self.target_vect)
-        self.reward = - self.dist_to_target 
+        #self.dist_to_target = np.linalg.norm(self.tip_coord - self.target_vect)
+        #self.reward = - self.dist_to_target 
+        self.reward=0
 
         closest_dist = 1000
         for (x,y) in self.cup_positions:
@@ -70,20 +71,11 @@ class JacoEnv(gym.Env):
         #===========================================================#
        
         # create info
-        self.info = {"tip coordinates": self.tip_coord, "target coordinates": self.target_vect}
+        self.info = {"tip coordinates": self.tip_coord}#, "target coordinates": self.target_vect}
         
         # create done
         self.done = False
-
-        # IF DEFINING DONE AS FOLLOWS, THE EPISODE ENDS EARLY AND A GOOD AGENT WILL RECEIVED A PENALTY FOR BEING GOOD
-        # COOMENT THIS
-        # if self.dist_to_target < 0.01:
-            # self.done = True
-            
-        # print("tip position: ", self.tip_coord)
-        # print("target vect: ", self.target_vect)
-        # print("dist_to_target: ", self.dist_to_target)
-
+        
         return self.observation, self.reward, self.done, self.info
 
     def cup_has_collision(self,x,y,tol=.08):
@@ -121,18 +113,6 @@ class JacoEnv(gym.Env):
             self.cup_positions.append((x,y))
         self.robot.move_cups(self.cup_positions)
 
-        # Target stuff we don't care about
-        x_target = random.uniform(-0.335, 0.335)
-        y_target = random.uniform(-0.337, 0.337)
-        z_target = random.uniform(0.686, 1.021)
-        
-        self.target_vect = np.array([x_target, y_target, z_target])
-
-
-        print("Random target coordinates generated")
-
-        # if testing: graphically move the sphere target, if training, comment this line
-        # self.robot.move_sphere(self.target_vect)
         return self.obs
 
 

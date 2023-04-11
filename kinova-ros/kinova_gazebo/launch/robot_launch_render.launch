@@ -59,10 +59,6 @@
     <arg name="is7dof" value="$(arg is7dof)"/>
   </include>
 
-<!-- Spawn a sphere into Gazebo -->
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find sphere_description)/urdf/sphere.urdf -urdf -x 0.9 -y 0 -z 0.23450887489568126 -model my_sphere3" />
-
-  <node name="spawn_urdf2" pkg="gazebo_ros" type="spawn_model" args="-file $(find sphere_description)/urdf/sphere.urdf -urdf -x 0.9 -y 0 -z 1.23450887489568126 -model my_sphere4" />
 
 
   <!-- rqt launch file -->
