@@ -131,7 +131,6 @@ class JacoGazeboActionClient:
     
     def randomize_cups(self, seed=None,ranges=((-1.5,-.5),(-.5,.5))):
         cup_names = ["cup1", "cup2", "cup3"]
-        print('RANDOMING')
         if seed:
             random.seed(seed)
         for i in range(len(cup_names)):
