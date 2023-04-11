@@ -12,7 +12,7 @@ class JacoEnv(gym.Env):
 
         self.robot = JacoGazeboActionClient()
 
-        self.action_dim = 6
+        self.action_dim = 7 #6 ADDED GRIPPY BOY
         # self.obs_dim = 36
         self.obs_dim = 12   # when using read_state_simple
 
@@ -33,11 +33,13 @@ class JacoEnv(gym.Env):
     
     def action2deg(self, action):
         action[0] = self.convert_action_to_deg(action[0], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
-        action[1] = 180
+        #action[1] = 180
+        action[1] = self.convert_action_to_deg(action[1], OldMin=-1, OldMax=1, NewMin=90, NewMax=270)
         action[2] = self.convert_action_to_deg(action[2], OldMin=-1, OldMax=1, NewMin=90, NewMax=270)
         action[3] = self.convert_action_to_deg(action[3], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         action[4] = self.convert_action_to_deg(action[4], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
+        action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=0, NewMax=90)
 
         return action
 
@@ -84,7 +86,7 @@ class JacoEnv(gym.Env):
 
         self.robot.cancel_move()
 
-        pos = [0, 180, 180, 0, 0, 0]
+        pos = [0, 180, 180, 0, 0, 0, 0]
         pos = np.radians(pos)
         self.robot.move_arm(pos)
         print("Jaco reset to initial position")

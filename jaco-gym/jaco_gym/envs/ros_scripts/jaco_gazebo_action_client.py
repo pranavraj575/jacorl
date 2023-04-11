@@ -18,7 +18,13 @@ class JacoGazeboActionClient:
     def __init__(self):
         
         action_address = "/j2n6s300/effort_joint_trajectory_controller/follow_joint_trajectory"
+        
         self.client = actionlib.SimpleActionClient(action_address, FollowJointTrajectoryAction)
+        
+        
+        fingy_addy = "/j2n6s300/effort_finger_trajectory_controller/follow_joint_trajectory"
+        self.finger_client = actionlib.SimpleActionClient(fingy_addy, FollowJointTrajectoryAction)
+        
 
         self.pub_topic = '/gazebo/set_model_state'
         self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
@@ -30,6 +36,8 @@ class JacoGazeboActionClient:
 
 
     def move_arm(self, points_list):
+        # ADDED GRIPPY BOY, points list[6]
+            
         # # Unpause the physics
         # rospy.wait_for_service('/gazebo/unpause_physics')
         # unpause_gazebo = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
@@ -73,7 +81,7 @@ class JacoGazeboActionClient:
         # "efforts" of type float64
         # "time_from_start" of type duration
         
-        points_msg.positions = points_list
+        points_msg.positions = points_list[:6]
         points_msg.velocities = [0, 0, 0, 0, 0, 0]
         points_msg.accelerations = [0, 0, 0, 0, 0, 0]
         points_msg.effort = [0, 0, 0, 0, 0, 0]
@@ -88,6 +96,26 @@ class JacoGazeboActionClient:
         # self.client.send_goal_and_wait(goal)
         self.client.send_goal(goal)
         self.client.wait_for_result()
+        
+        # GRIPPY 
+        
+        self.client.wait_for_server()
+
+        goal = FollowJointTrajectoryGoal()
+        
+        trajectory_msg = JointTrajectory()  
+        points_msg.positions = points_list[6:]*3 # note: controlls all three fingys at once, can change if necessary  
+        points_msg.velocities = [0, 0, 0]
+        points_msg.accelerations = [0, 0, 0]
+        points_msg.effort = [0, 0, 0]
+        points_msg.time_from_start = rospy.Duration(0.01)
+        
+        trajectory_msg.points = [points_msg]
+        
+        goal.trajectory = trajectory_msg
+
+        self.finger_client.send_goal(goal)
+        self.finger_client.wait_for_result()
 
         rospy.sleep(2)      # wait for 2s
 
