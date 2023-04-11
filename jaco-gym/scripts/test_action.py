@@ -18,7 +18,7 @@ rospy.init_node("kinova_client")
 
 #ROBOT MOVE
 
-action_address = "/j2n6s300/effort_joint_trajectory_controller/follow_joint_trajectory"
+action_address = "/j2n6s200/effort_joint_trajectory_controller/follow_joint_trajectory"
 
 client = actionlib.SimpleActionClient(action_address, FollowJointTrajectoryAction)
 client.wait_for_server()
@@ -27,12 +27,12 @@ goal = FollowJointTrajectoryGoal()
 
 trajectory_msg = JointTrajectory()
 trajectory_msg.joint_names = [
-            "j2n6s300_joint_1", 
-            "j2n6s300_joint_2", 
-            "j2n6s300_joint_3",
-            "j2n6s300_joint_4", 
-            "j2n6s300_joint_5", 
-            "j2n6s300_joint_6"
+            "j2n6s200_joint_1", 
+            "j2n6s200_joint_2", 
+            "j2n6s200_joint_3",
+            "j2n6s200_joint_4", 
+            "j2n6s200_joint_5", 
+            "j2n6s200_joint_6"
             ]
 points_msg = JointTrajectoryPoint()
 points_msg.positions = [ 0,pi/2, pi, 0, 0, 0]
@@ -52,7 +52,7 @@ client.wait_for_result()
 
 #FINGER GRAB
 
-action_address = "/j2n6s300/effort_finger_trajectory_controller/follow_joint_trajectory"
+action_address = "/j2n6s200/effort_finger_trajectory_controller/follow_joint_trajectory"
 client = actionlib.SimpleActionClient(action_address, FollowJointTrajectoryAction)
 client.wait_for_server()
 goal = FollowJointTrajectoryGoal()
@@ -63,16 +63,16 @@ while grab:
     trajectory_msg = JointTrajectory()
     
     trajectory_msg.joint_names = [
-                "j2n6s300_joint_finger_1", 
-                "j2n6s300_joint_finger_2", 
-                "j2n6s300_joint_finger_3"]
+                "j2n6s200_joint_finger_1", 
+                "j2n6s200_joint_finger_2"]
+                #,"j2n6s200_joint_finger_3"]
                 
     points_msg = JointTrajectoryPoint()
-    points_msg.positions=[float(grab)]*3#[0,0,0]
+    points_msg.positions=[float(grab)]*2#[0,0,0]
     
-    points_msg.velocities = [0, 0,0]
-    points_msg.accelerations = [0, 0, 0]
-    points_msg.effort = [0, 0, 0]
+    points_msg.velocities = [0, 0]#,0]
+    points_msg.accelerations = [0, 0]#, 0]
+    points_msg.effort = [0, 0]#, 0]
 
 
 
