@@ -1,4 +1,4 @@
-# Kinova Jaco2 RL Environment
+# Kinova Jaco2 RL Environment for 2 finger
 
 
 ![Jaco Gazebo](/images/jaco_training.gif)
@@ -79,7 +79,7 @@ Note, the kinova-ros package was adapted from the [official package](https://git
 
 In terminal 1:
 ```bash
-roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=j2n6s300
+roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=j2n6s200
 ```
 
 In terminal 2:
@@ -91,9 +91,9 @@ python3 scripts/0_test_jaco_real.py
 
 In terminal 1:
 ```bash
-roslaunch kinova_gazebo robot_launch_render.launch kinova_robotType:=j2n6s300     # enable graphic rendering
+roslaunch kinova_gazebo robot_launch_render.launch kinova_robotType:=j2n6s200     # enable graphic rendering
 # OR
-roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s300   # disable graphic rendering
+roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s200   # disable graphic rendering
 ```
 
 In terminal 2:
