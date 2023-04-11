@@ -170,28 +170,9 @@ class JacoGazeboActionClient:
         # print(model_state_msg)
         
         self.pub.publish(model_state_msg)
-    
-    def has_collision(self,x,y,positions,tol=.08):
-        for pos in positions:
-            x2 = pos[0]
-            y2 = pos[1]
-            dist = math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y))
-            if(dist <= tol):
-                return True
-        return False
 
-    def randomize_cups(self, seed=None,ranges=((-1.5,-0.3),(-.29,.29))):
+    def move_cups(self, positions):
         cup_names = ["cup1", "cup2", "cup3"]
-        if seed:
-            random.seed(seed)
-        positions = []
-        for i in range(len(cup_names)):
-            x = random.uniform(ranges[0][0],ranges[0][1])
-            y = random.uniform(ranges[1][0],ranges[1][1])
-            while(self.has_collision(x,y,positions)):
-                x = random.uniform(ranges[0][0],ranges[0][1])
-                y = random.uniform(ranges[1][0],ranges[1][1])
-            positions.append((x,y))
         for z in [-1,0]:
             for i in range(len(cup_names)):
                 model_state_msg = ModelState()
@@ -201,13 +182,12 @@ class JacoGazeboActionClient:
                 point_msg.x = x
                 point_msg.y = y
                 point_msg.z = z
-                #print("Moving " + cup_name + "to position %d %d",x,y)
                 pose_msg.position = point_msg
                 model_state_msg.model_name = cup_names[i]
                 model_state_msg.pose = pose_msg
                 model_state_msg.reference_frame = "world"
                 self.pub.publish(model_state_msg)
-                rospy.sleep(.1)
+                rospy.sleep(.01)
 
 
     def cancel_move(self):
