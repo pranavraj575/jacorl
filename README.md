@@ -50,6 +50,8 @@ cd src/jaco-gym
 pip3 install -e .
 cd ../rlkit
 pip3 install -e .
+cd ../ros_numpy
+pip3 install -e .
 ```
 
 5. either run every time or add to bashrc
