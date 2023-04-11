@@ -171,12 +171,12 @@ class JacoGazeboActionClient:
         
         self.pub.publish(model_state_msg)
     
-    def has_collision(self,x,y,positions):
+    def has_collision(self,x,y,positions,tol=.08):
         for pos in positions:
             x2 = pos[0]
             y2 = pos[1]
             dist = math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y))
-            if(dist <= 0.08):
+            if(dist <= tol):
                 return True
         return False
 
@@ -185,26 +185,29 @@ class JacoGazeboActionClient:
         if seed:
             random.seed(seed)
         positions = []
-        for cup_name in cup_names:
-            model_state_msg = ModelState()
-            pose_msg = Pose()
-            point_msg = Point()
+        for i in range(len(cup_names)):
             x = random.uniform(ranges[0][0],ranges[0][1])
             y = random.uniform(ranges[1][0],ranges[1][1])
             while(self.has_collision(x,y,positions)):
                 x = random.uniform(ranges[0][0],ranges[0][1])
                 y = random.uniform(ranges[1][0],ranges[1][1])
             positions.append((x,y))
-            point_msg.x = x
-            point_msg.y = y
-            point_msg.z = 0
-            #print("Moving " + cup_name + "to position %d %d",x,y)
-            pose_msg.position = point_msg
-            model_state_msg.model_name = cup_name
-            model_state_msg.pose = pose_msg
-            model_state_msg.reference_frame = "world"
-            self.pub.publish(model_state_msg)
-            rospy.sleep(.1)
+        for z in [-1,0]:
+            for i in range(len(cup_names)):
+                model_state_msg = ModelState()
+                pose_msg = Pose()
+                point_msg = Point()
+                (x,y)=positions[i]
+                point_msg.x = x
+                point_msg.y = y
+                point_msg.z = z
+                #print("Moving " + cup_name + "to position %d %d",x,y)
+                pose_msg.position = point_msg
+                model_state_msg.model_name = cup_names[i]
+                model_state_msg.pose = pose_msg
+                model_state_msg.reference_frame = "world"
+                self.pub.publish(model_state_msg)
+                rospy.sleep(.1)
 
 
     def cancel_move(self):
