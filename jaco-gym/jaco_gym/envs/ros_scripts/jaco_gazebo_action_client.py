@@ -114,7 +114,7 @@ class JacoGazeboActionClient:
         # "accelerations" of type float64
         # "efforts" of type float64
         # "time_from_start" of type duration
-        points_msg.positions = points_list[:6]
+        points_msg.positions = points_list
         points_msg.velocities = [0, 0, 0, 0, 0, 0]
         points_msg.accelerations = [0, 0, 0, 0, 0, 0]
         points_msg.effort = [0, 0, 0, 0, 0, 0]
@@ -169,19 +169,19 @@ class JacoGazeboActionClient:
         
         self.pub.publish(model_state_msg)
     
-    def randomize_cups(self, seed=None,ranges=((-1.5,-.5),(-.5,.5))):
+    def randomize_cups(self, seed=None,ranges=((-.5,1),(-.45,.45),(.013,.013))):
         cup_names = ["cup1", "cup2", "cup3"]
         if seed:
             random.seed(seed)
-        for i in range(len(cup_names)):
+        for cup_name in cup_names:
             model_state_msg = ModelState()
             pose_msg = Pose()
             point_msg = Point()
-            point_msg.x = random.uniform(-1.5, -0.5)
-            point_msg.y = random.uniform(-0.5, 0.5)
-            point_msg.z = 0.013
+            point_msg.x = random.uniform(ranges[0][0],ranges[0][1])
+            point_msg.y = random.uniform(ranges[1][0],ranges[1][1])
+            point_msg.z = random.uniform(ranges[2][0],ranges[2][1])
             pose_msg.position = point_msg
-            model_state_msg.model_name = cup_names[i]
+            model_state_msg.model_name = cup_name
             model_state_msg.pose = pose_msg
             model_state_msg.reference_frame = "world"
             self.pub.publish(model_state_msg)

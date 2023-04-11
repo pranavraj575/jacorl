@@ -91,8 +91,9 @@ class JacoEnv(gym.Env):
     def reset(self): 
 
         self.robot.cancel_move()
+        self.robot.move_finger(0)
 
-        pos = [0, 180, 180, 0, 0, 0, 0]
+        pos = [0, 180, 180, 0, 0, 0]
         pos = np.radians(pos)
         self.robot.move_arm(pos)
         print("Jaco reset to initial position")
