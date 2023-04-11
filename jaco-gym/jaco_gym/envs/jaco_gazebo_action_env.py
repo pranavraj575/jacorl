@@ -99,10 +99,13 @@ class JacoEnv(gym.Env):
 
         self.robot.cancel_move()
         self.robot.move_finger(0)
-        pos = [0, 180, 180, 0, 0, 0]
-        pos = np.radians(pos)
-        self.robot.move_arm(pos)
-        self.robot.move_finger(0)
+        init_pos=[1,-.3,-.7,0,1,0,-1]
+        init_pos=self.action2deg(init_pos)
+        init_pos=np.radians(init_pos)
+        #pos = [0, 180, 180, 0, 0, 0]
+        #pos = np.radians(pos)
+        self.robot.move_arm(init_pos[:6])
+        self.robot.move_finger(init_pos[6])
         print("Jaco reset to initial position")
         self.obs = self.robot.read_state_simple() # get observation
 
