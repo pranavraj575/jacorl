@@ -64,7 +64,6 @@ for episode in range(3):
     for t in range(5):
 
         action = env.action_space.sample()
-        #action = [0,1,0,1,0,1]
         obs, reward, done, info = env.step(action)
 
         print("timestep:", t)
