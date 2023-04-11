@@ -35,7 +35,7 @@ class JacoEnv(gym.Env):
         action[0] = self.convert_action_to_deg(action[0], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         #action[1] = 180
         action[1] = self.convert_action_to_deg(action[1], OldMin=-1, OldMax=1, NewMin=90, NewMax=270)
-        action[2] = self.convert_action_to_deg(action[2], OldMin=-1, OldMax=1, NewMin=90, NewMax=270)
+        action[2] = self.convert_action_to_deg(action[2], OldMin=-1, OldMax=1, NewMin=0, NewMax=180)
         action[3] = self.convert_action_to_deg(action[3], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         action[4] = self.convert_action_to_deg(action[4], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
@@ -96,6 +96,7 @@ class JacoEnv(gym.Env):
         pos = [0, 180, 180, 0, 0, 0]
         pos = np.radians(pos)
         self.robot.move_arm(pos)
+        self.robot.move_finger(0)
         print("Jaco reset to initial position")
 
         # get observation
