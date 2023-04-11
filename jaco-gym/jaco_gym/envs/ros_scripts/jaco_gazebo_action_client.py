@@ -17,12 +17,12 @@ class JacoGazeboActionClient:
 
     def __init__(self):
         
-        action_address = "/j2n6s300/effort_joint_trajectory_controller/follow_joint_trajectory"
+        action_address = "/j2n6s200/effort_joint_trajectory_controller/follow_joint_trajectory"
         
         self.client = actionlib.SimpleActionClient(action_address, FollowJointTrajectoryAction)
         
         
-        fingy_addy = "/j2n6s300/effort_finger_trajectory_controller/follow_joint_trajectory"
+        fingy_addy = "/j2n6s200/effort_finger_trajectory_controller/follow_joint_trajectory"
         self.finger_client = actionlib.SimpleActionClient(fingy_addy, FollowJointTrajectoryAction)
         
 
@@ -42,7 +42,7 @@ class JacoGazeboActionClient:
         # GRIPPY 
         
         
-        finger_list= [grippiness]*3 # note: controlls all three fingys at once, can change if necessary  
+        finger_list= [grippiness]*2 # note: controlls all fingys at once, can change if necessary  
         
         self.finger_client.wait_for_server()
 
@@ -50,17 +50,18 @@ class JacoGazeboActionClient:
         
         fingy_trajectory_msg = JointTrajectory()
         fingy_trajectory_msg.joint_names = [
-                "j2n6s300_joint_finger_1", 
-                "j2n6s300_joint_finger_2", 
-                "j2n6s300_joint_finger_3"]
+                "j2n6s200_joint_finger_1", 
+                "j2n6s200_joint_finger_2", 
+                #"j2n6s200_joint_finger_3"
+                ]
         
         fingy_points_msg = JointTrajectoryPoint()
         
           
         fingy_points_msg.positions = finger_list  
-        fingy_points_msg.velocities = [0, 0, 0]
-        fingy_points_msg.accelerations = [0, 0, 0]
-        fingy_points_msg.effort = [0, 0, 0]
+        fingy_points_msg.velocities = [0, 0]#, 0]
+        fingy_points_msg.accelerations = [0, 0]#, 0]
+        fingy_points_msg.effort = [0, 0]#, 0]
         fingy_points_msg.time_from_start = rospy.Duration(0.01)
         
         fingy_trajectory_msg.points = [fingy_points_msg]
@@ -98,12 +99,12 @@ class JacoGazeboActionClient:
         # "points" of type trajectory_msgs/JointTrajectoryPoint
 
         trajectory_msg.joint_names = [
-            "j2n6s300_joint_1", 
-            "j2n6s300_joint_2", 
-            "j2n6s300_joint_3", 
-            "j2n6s300_joint_4", 
-            "j2n6s300_joint_5", 
-            "j2n6s300_joint_6"
+            "j2n6s200_joint_1", 
+            "j2n6s200_joint_2", 
+            "j2n6s200_joint_3", 
+            "j2n6s200_joint_4", 
+            "j2n6s200_joint_5", 
+            "j2n6s200_joint_6"
             ]
 
         points_msg = JointTrajectoryPoint()
@@ -197,7 +198,7 @@ class JacoGazeboActionClient:
         return camera_info,raw,compressed
 
     def read_state_old(self):
-        self.status = rospy.wait_for_message("/j2n6s300/effort_joint_trajectory_controller/state", JointTrajectoryControllerState)
+        self.status = rospy.wait_for_message("/j2n6s200/effort_joint_trajectory_controller/state", JointTrajectoryControllerState)
         
         # convert tuple to list and concatenate
         self.state = list(self.status.actual.positions) + list(self.status.actual.velocities)
@@ -207,7 +208,7 @@ class JacoGazeboActionClient:
 
 
     def read_state(self):
-        self.status = rospy.wait_for_message("/j2n6s300/joint_states", JointState)
+        self.status = rospy.wait_for_message("/j2n6s200/joint_states", JointState)
         
         self.joint_names = self.status.name
         # print(self.joint_names)
@@ -225,7 +226,7 @@ class JacoGazeboActionClient:
         read state of the joints only (not the finglers) + removed the efforts
         """
 
-        self.status = rospy.wait_for_message("/j2n6s300/joint_states", JointState)
+        self.status = rospy.wait_for_message("/j2n6s200/joint_states", JointState)
         
         self.joint_names = self.status.name[:6]
         # print(self.joint_names)
