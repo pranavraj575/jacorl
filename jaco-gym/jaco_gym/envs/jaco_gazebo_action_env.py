@@ -53,7 +53,13 @@ class JacoEnv(gym.Env):
         self.action = np.radians(self.action)
 
         # move arm 
-        self.robot.move_arm(self.action)
+        self.robot.move_arm(self.action[:6])
+        
+        # move fingy
+        self.robot.move_finger(self.action[6])
+        
+        #wait
+        self.robot.sleepy(2)
        
         # get state
         # self.observation = self.robot.read_state()

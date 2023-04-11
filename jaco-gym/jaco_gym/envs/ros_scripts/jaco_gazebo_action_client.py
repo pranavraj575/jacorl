@@ -34,9 +34,43 @@ class JacoGazeboActionClient:
         unpause_gazebo = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
         unpause_gazebo()
 
+    def sleepy(self,sec=2):
+        rospy.sleep(sec)      # wait for 2s
+    def move_finger(self,grippiness):
+        # ADDED GRIPPY BOY, single number [0,pi/2] that grips
+        
+        # GRIPPY 
+        
+        
+        finger_list= [grippiness]*3 # note: controlls all three fingys at once, can change if necessary  
+        
+        self.finger_client.wait_for_server()
+
+        fingy_goal = FollowJointTrajectoryGoal()
+        
+        fingy_trajectory_msg = JointTrajectory()
+        fingy_trajectory_msg.joint_names = [
+                "j2n6s300_joint_finger_1", 
+                "j2n6s300_joint_finger_2", 
+                "j2n6s300_joint_finger_3"]
+        
+        fingy_points_msg = JointTrajectoryPoint()
+        
+          
+        fingy_points_msg.positions = finger_list  
+        fingy_points_msg.velocities = [0, 0, 0]
+        fingy_points_msg.accelerations = [0, 0, 0]
+        fingy_points_msg.effort = [0, 0, 0]
+        fingy_points_msg.time_from_start = rospy.Duration(0.01)
+        
+        fingy_trajectory_msg.points = [fingy_points_msg]
+        
+        fingy_goal.trajectory = fingy_trajectory_msg
+
+        self.finger_client.send_goal(fingy_goal)
+        self.finger_client.wait_for_result()
 
     def move_arm(self, points_list):
-        # ADDED GRIPPY BOY, points list[6]
             
         # # Unpause the physics
         # rospy.wait_for_service('/gazebo/unpause_physics')
@@ -80,7 +114,6 @@ class JacoGazeboActionClient:
         # "accelerations" of type float64
         # "efforts" of type float64
         # "time_from_start" of type duration
-        
         points_msg.positions = points_list[:6]
         points_msg.velocities = [0, 0, 0, 0, 0, 0]
         points_msg.accelerations = [0, 0, 0, 0, 0, 0]
@@ -96,28 +129,7 @@ class JacoGazeboActionClient:
         # self.client.send_goal_and_wait(goal)
         self.client.send_goal(goal)
         self.client.wait_for_result()
-        
-        # GRIPPY 
-        
-        self.client.wait_for_server()
-
-        goal = FollowJointTrajectoryGoal()
-        
-        trajectory_msg = JointTrajectory()  
-        points_msg.positions = points_list[6:]*3 # note: controlls all three fingys at once, can change if necessary  
-        points_msg.velocities = [0, 0, 0]
-        points_msg.accelerations = [0, 0, 0]
-        points_msg.effort = [0, 0, 0]
-        points_msg.time_from_start = rospy.Duration(0.01)
-        
-        trajectory_msg.points = [points_msg]
-        
-        goal.trajectory = trajectory_msg
-
-        self.finger_client.send_goal(goal)
-        self.finger_client.wait_for_result()
-
-        rospy.sleep(2)      # wait for 2s
+        #self.sleepy()
 
         # return self.client.get_state()
 
