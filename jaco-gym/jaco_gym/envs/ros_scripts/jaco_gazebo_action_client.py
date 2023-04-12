@@ -32,7 +32,6 @@ class JacoGazeboActionClient:
                 self.doota[data.name[i]]=data.pose[i]
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
-        self.cup_goal_x = -0.3 # or below
 
         # Unpause the physics
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -241,24 +240,6 @@ class JacoGazeboActionClient:
         #     print(self.status.pose[i])
 
         return [self.status.pose[8].position.x, self.status.pose[8].position.y, self.status.pose[8].position.z]
-        
-    def is_upside_down(self,orientation,tol=.02):
-            # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
-            # will convert to roll, pitch, yaw (rotation on x,y,z axis), ignore z axis and see if cup is exactly upside down
-            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
-            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
-            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
-            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
-        
-    def cup_on_table(self,pos):
-        return pos.z >= 0
-    
-    def cup_at_goal_loc(self,pos):
-        return self.cup_on_table(pos) & (pos.x >= self.cup_goal_x)
-    
-    def cup_in_hand(self,pos):
-        self.read_state()
-        print(self.eff)
 
 
 # rospy.init_node("kinova_client")

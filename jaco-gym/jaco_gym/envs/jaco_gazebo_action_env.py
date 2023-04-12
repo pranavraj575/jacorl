@@ -38,6 +38,24 @@ class JacoEnv(gym.Env):
         action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=0, NewMax=90)
         return action
 
+    def is_upside_down(self,orientation,tol=.02):
+            # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
+            # will convert to roll, pitch, yaw (rotation on x,y,z axis), ignore z axis and see if cup is exactly upside down
+            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
+            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
+            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
+        
+    def cup_on_table(self,pos):
+        return pos.z >= 0
+    
+    def cup_at_goal_loc(self,pos):
+        return self.cup_on_table(pos) & (pos.x >= self.cup_goal_x)
+    
+    def cup_in_hand(self,pos):
+        self.robot.read_state()
+        print(self.robot.eff[6:])
+
     def step(self, action):
         self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
         self.action = np.radians(self.action) # convert to radians    
@@ -55,15 +73,16 @@ class JacoEnv(gym.Env):
         cups = ["cup1","cup2","cup3"]
         for cup in cups:
             pos = obj_data[cup].position
+            self.cup_in_hand(pos)
             # print("\n--------------------")
             # self.robot.cup_in_hand(pos)
             # print("--------------------\n")
             # Negative reward for each cup that is off the table
-            if (not self.robot.cup_on_table(pos)):
+            if (not self.cup_on_table(pos)):
                 print(cup, " is off the table")
                 self.reward -= 50
             else:  # Large positive reward for each cup in the goal zone
-                if(self.robot.cup_at_goal_loc(pos)):
+                if(self.cup_at_goal_loc(pos)):
                     print(cup, " is at the goal")
                     self.reward += 100
                 else: # Reward incentivising cups to be close to goal
