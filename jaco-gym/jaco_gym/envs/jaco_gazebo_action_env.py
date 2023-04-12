@@ -55,7 +55,8 @@ class JacoEnv(gym.Env):
         self.reward=0
 
         closest_dist = 1000
-        for (x,y) in self.cup_positions:
+        self.robot.get_object_data() #SOPHIA USE THIS 
+        for (x,y,z) in self.cup_positions:
             # ADD THE REWARD FOR ROBOT TO CLOSEST CUP
             # Assign a negative reward for each cup that is off the table
             if (y > self.table_y_range[1] or y < self.table_y_range[0]):
@@ -111,7 +112,7 @@ class JacoEnv(gym.Env):
             while(self.cup_has_collision(x,y)):
                 x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
                 y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-            self.cup_positions.append((x,y))
+            self.cup_positions.append((x,y,.065))
         self.robot.move_cups(self.cup_positions)
 
         return self.obs

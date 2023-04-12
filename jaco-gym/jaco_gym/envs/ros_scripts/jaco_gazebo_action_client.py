@@ -8,10 +8,11 @@ import math
 
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from gazebo_msgs.msg import LinkStates, ModelState
+from gazebo_msgs.msg import LinkStates, ModelState, ModelStates
 from std_srvs.srv import Empty
 from sensor_msgs.msg import JointState, CameraInfo, Image, CompressedImage
-from geometry_msgs.msg import Pose, Point
+from geometry_msgs.msg import Pose, Point, Quaternion
+from scipy.spatial.transform import Rotation
 
 
 class JacoGazeboActionClient:
@@ -29,6 +30,14 @@ class JacoGazeboActionClient:
 
         self.pub_topic = '/gazebo/set_model_state'
         self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
+        
+        self.doota={}
+        def _call_model_data(data):
+            self.doota={}
+            for i in range(len(data.name)):
+                self.doota[data.name[i]]=data.pose[i]
+        self.sub_topic="/gazebo/model_states"
+        self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
         # Unpause the physics
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -134,19 +143,38 @@ class JacoGazeboActionClient:
         #self.sleepy()
 
         # return self.client.get_state()
-
-    def move_cups(self, positions):
+    def is_upside_down(self,orientation,tol=.02):
+        # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
+        # will convert to roll, pitch, yaw (rotation on x,y,z axis), ignore z axis and see if cup is exactly upside down
+        (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
+        roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
+        pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+        return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
+        
+        
+    def move_cups(self, positions,orientations=None):
         cup_names = ["cup1", "cup2", "cup3"]
-        for z in [-1,0]:
+        for zs in [[-1]*3,[p[2] for p in positions]]:
             for i in range(len(cup_names)):
                 model_state_msg = ModelState()
                 pose_msg = Pose()
                 point_msg = Point()
-                (x,y)=positions[i]
+                
+                rot_msg=Quaternion()#default no rotation
+                
+                if orientations:
+                  (roll,pitch,yaw)=orientations[i]
+                  stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
+                  (rot_msg.x,rot_msg.y,rot_msg.z,rot_msg.w)=stuff
+                
+                (x,y,_)=positions[i]
                 point_msg.x = x
                 point_msg.y = y
-                point_msg.z = z
+                point_msg.z = zs[i]
                 pose_msg.position = point_msg
+                
+                pose_msg.orientation = rot_msg
+                
                 model_state_msg.model_name = cup_names[i]
                 model_state_msg.pose = pose_msg
                 model_state_msg.reference_frame = "world"
@@ -171,7 +199,9 @@ class JacoGazeboActionClient:
         # also self.status.actual.accelerations, self.status.actual.effort
 
         return self.state
-
+    
+    def get_object_data(self):
+        return self.doota
 
     def read_state(self):
         self.status = rospy.wait_for_message("/j2n6s200/joint_states", JointState)
