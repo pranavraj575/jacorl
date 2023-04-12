@@ -21,7 +21,6 @@ class JacoEnv(gym.Env):
         self.table_y_range=(-0.29,0.29)
         self.cup_ranges=((-1.4,-0.31),self.table_y_range)
         self.cup_goal_x = -0.3 # or below
-        
 
     def convert_action_to_deg(self, a, OldMin, OldMax, NewMin, NewMax):
         OldRange = (OldMax - OldMin)  
@@ -50,24 +49,35 @@ class JacoEnv(gym.Env):
         #===================== Calculate Reward ====================#
 
         self.tip_coord = self.robot.get_tip_coord()
-        #self.dist_to_target = np.linalg.norm(self.tip_coord - self.target_vect)
-        #self.reward = - self.dist_to_target 
-        self.reward=0
-
-        closest_dist = 1000
-        self.robot.get_object_data() #SOPHIA USE THIS 
-        for (x,y,z) in self.cup_positions:
-            # ADD THE REWARD FOR ROBOT TO CLOSEST CUP
-            # Assign a negative reward for each cup that is off the table
-            if (y > self.table_y_range[1] or y < self.table_y_range[0]):
+        self.reward = 100
+        closest_dist = 100
+        obj_data = self.robot.get_object_data()
+        cups = ["cup1","cup2","cup3"]
+        for cup in cups:
+            pos = obj_data[cup].position
+            # print("\n--------------------")
+            # self.robot.cup_in_hand(pos)
+            # print("--------------------\n")
+            # Negative reward for each cup that is off the table
+            if (not self.robot.cup_on_table(pos)):
+                print(cup, " is off the table")
                 self.reward -= 50
             else:  # Large positive reward for each cup in the goal zone
-                if(x >= self.cup_goal_x):
+                if(self.robot.cup_at_goal_loc(pos)):
+                    print(cup, " is at the goal")
                     self.reward += 100
-                else: # Negative reward for cups farther from goal
-                    dist_to_goal = self.cup_goal_x - x
+                else: # Reward incentivising cups to be close to goal
+                    dist_to_goal = self.cup_goal_x - pos.x
                     self.reward -= dist_to_goal * 10
-            
+                    dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z]))
+                    if(dist_to_cup < closest_dist):
+                        closest_dist = dist_to_cup
+        # Reward incentivising robot tip to be close to the nearest cup not 
+        # already in the goal zone, as long as there are sitll cups not at goal
+        if(closest_dist != 100):
+            print(cup, " is dist ", closest_dist)
+            self.reward -= closest_dist * 10
+        print("Reward is ",self.reward)
 
         #===========================================================#
        
