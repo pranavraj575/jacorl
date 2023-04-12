@@ -4,7 +4,7 @@
     <joint name="camera_joint" type="fixed">
         <parent link="j2n6s200_link_6"/>
         <child link="camera_link"/>
-        <origin xyz="0.06 0 0.00" rpy="0 ${pi/2} 0"/>
+        <origin xyz="0.07 0 0.00" rpy="0 ${pi/2} 0"/>
     </joint>
 
     <link name="camera_link">
