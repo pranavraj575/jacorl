@@ -91,7 +91,8 @@ class JacoEnv(gym.Env):
 
         self.robot.cancel_move()
         self.robot.move_finger(0)
-        init_pos=[1,-.3,-.7,0,1,0,-1]
+        #init_pos=[1,-.3,-.7,0,1,0,-1]
+        init_pos=[-.865,-.2,-.7,.2,-.8,-.22,-1]
         init_pos=self.action2deg(init_pos)
         init_pos=np.radians(init_pos)
         #pos = [0, 180, 180, 0, 0, 0]
