@@ -9,6 +9,7 @@ setup(name='jaco_gym',
           'box2d', 
           'box2d-kengz', 
           'pyyaml', 
+          'pytz==2020.1',
           'optuna', 
           'pytablewriter',
           'tensorflow-gpu==1.14']
