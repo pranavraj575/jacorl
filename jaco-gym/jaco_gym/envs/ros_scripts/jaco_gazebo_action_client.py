@@ -212,7 +212,10 @@ class JacoGazeboActionClient:
     
     def get_object_data(self):
         return self.doota
-
+    def get_obs(self):
+        return self.read_state_priviledged()
+    def get_obs_dim(self):
+        return 31
     def read_state(self):
         self.status = rospy.wait_for_message("/j2n6s200/joint_states", JointState)
         
@@ -225,6 +228,28 @@ class JacoGazeboActionClient:
 
         # return self.status
         return np.asarray(self.pos + self.vel + self.eff)
+    
+    def read_state_priviledged(self):
+        self.status = rospy.wait_for_message("/j2n6s200/joint_states", JointState)
+        self.joint_names = self.status.name
+        self.pos = self.status.position
+        self.vel = self.status.velocity
+        self.eff = self.status.effort[6:8] # Effort of joints 7 and 8 = fingertip efforts
+
+        state_tuple = self.pos + self.vel + self.eff
+
+        self.cup_positions = []
+        obj_data = self.get_object_data()
+        cups = ["cup1","cup2","cup3"]
+        for cup in cups:
+            pos = obj_data[cup].position
+            state_tuple = state_tuple + (pos.x, pos.y, pos.z)
+
+        # Array values 0-9 = position angles of each joint
+        #              10-19 = velocity of each joint
+        #              20-21 = effort of each fingertip 
+        #              22-30 = (x,y,z) posititon of each of the 3 cups
+        return np.asarray(state_tuple)
 
 
     def read_state_simple(self):

@@ -12,7 +12,7 @@ class JacoEnv(gym.Env):
     def __init__(self):
         self.robot = JacoGazeboActionClient()
         self.action_dim = 7 #6 ADDED GRIPPY BOY
-        self.obs_dim = 30
+        self.obs_dim = self.robot.get_obs_dim()
         #self.obs_dim = 12   # when using read_state_simple
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
@@ -96,7 +96,7 @@ class JacoEnv(gym.Env):
     def step(self, action):
         #self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
         #self.action = np.radians(self.action) # convert to radians         
-        self.robot.read_state() # loads the positions 
+        self.robot.get_obs() # loads the positions 
         old_pos=np.array(self.robot.status.position[:8])
         print(old_pos[:8])
         old_pos[6]=(old_pos[6]+old_pos[7])/2
@@ -111,16 +111,13 @@ class JacoEnv(gym.Env):
                                           #in radians, measure of how much angle movement this made, could be useful
         self.robot.sleepy(0.2) # wait
                 
-        self.observation = self.robot.read_state()#_simple()   # get state, only return 12 values instead of 36
+        self.observation = self.robot.get_obs()#_simple()   # get state, only return 12 values instead of 36
         
         #===================== Calculate Reward ====================#
 
         self.tip_coord = self.robot.get_tip_coord()
         self.reward = 100
         closest_dist = 100
-        self.robot.read_state()
-        print(self.robot.eff[7])
-        print(self.robot.eff[8])
         obj_data = self.robot.get_object_data()
         cups = ["cup1","cup2","cup3"]
         for cup in cups:
@@ -184,7 +181,7 @@ class JacoEnv(gym.Env):
         self.robot.move_arm(init_pos[:6])
         self.robot.move_finger(init_pos[6])
         print("Jaco reset to initial position")
-        self.obs = self.robot.read_state()#_simple() # get observation
+        self.obs = self.robot.get_obs()#_simple() # get observation
 
         # generate random new cup positions
         cup_names = ["cup1", "cup2", "cup3"]
