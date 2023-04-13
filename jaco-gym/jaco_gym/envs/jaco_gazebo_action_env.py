@@ -184,7 +184,7 @@ class JacoEnv(gym.Env):
         self.robot.move_arm(init_pos[:6])
         self.robot.move_finger(init_pos[6])
         print("Jaco reset to initial position")
-        self.obs = self.robot.read_state_simple() # get observation
+        self.obs = self.robot.read_state()#_simple() # get observation
 
         # generate random new cup positions
         cup_names = ["cup1", "cup2", "cup3"]
