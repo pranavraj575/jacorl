@@ -12,7 +12,7 @@ class JacoEnv(gym.Env):
     def __init__(self):
         self.robot = JacoGazeboActionClient()
         self.action_dim = 7 #6 ADDED GRIPPY BOY
-        # self.obs_dim = 36
+        # self.obs_dim = 30
         self.obs_dim = 12   # when using read_state_simple
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
@@ -58,10 +58,14 @@ class JacoEnv(gym.Env):
 
     def step(self, action):
         self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
-        self.action = np.radians(self.action) # convert to radians    
-        self.robot.move_arm(self.action[:6]) # move arm 
+        self.action = np.radians(self.action) # convert to radians         
+        diff=self.robot.move_arm(self.action[:6]) # move arm 
         self.robot.move_finger(self.action[6]) # move fingy
+        
+        #print(diff, np.linalg.norm(diff)) # the difference between original position and the new position, 
+                                          #in radians, measure of how much angle movement this made, could be useful
         self.robot.sleepy(2) # wait
+                
         self.observation = self.robot.read_state_simple()   # get state, only return 12 values instead of 36
         
         #===================== Calculate Reward ====================#

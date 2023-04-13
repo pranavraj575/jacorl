@@ -76,6 +76,7 @@ class JacoGazeboActionClient:
         self.finger_client.wait_for_result()
 
     def move_arm(self, points_list):
+        #returns the difference, measure of the movement created
             
         # # Unpause the physics
         # rospy.wait_for_service('/gazebo/unpause_physics')
@@ -83,6 +84,8 @@ class JacoGazeboActionClient:
         # unpause_gazebo()
 
         self.client.wait_for_server()
+        
+        old_position=rospy.wait_for_message("/j2n6s200/joint_states", JointState).position[:6] # just the first 6
 
         goal = FollowJointTrajectoryGoal()    
 
@@ -135,6 +138,13 @@ class JacoGazeboActionClient:
         self.client.send_goal(goal)
         self.client.wait_for_result()
         #self.sleepy()
+        
+        diff1=(points_list-old_position)%(2*np.pi)# since angular, take mod
+        diff2=(points_list-old_position)%(-2*np.pi)# other direction (python mod returns sign of divisor)
+        
+        diff=[min(diff1[i],diff2[i], key=abs) 
+                for i in range(len(diff1))] #takes the minimum mod 2 pi since this is angular
+        return diff
 
         # return self.client.get_state()
         
