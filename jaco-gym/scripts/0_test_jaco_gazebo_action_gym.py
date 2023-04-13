@@ -54,10 +54,11 @@ for episode in range(3):
     #print("-------------")
     #print(camera_info)
     print("camera raw")
-    img_numpy = ros_numpy.numpify(raw)
+    img_numpy = env.robot.get_image_numpy()
     print(img_numpy.shape)
-    img = IMG.fromarray(img_numpy, "RGB")
-    img.save("myimg.jpeg")
+    img = env.robot.get_image_PIL()
+    
+    env.robot.save_image("myimg.jpeg")
     #print(raw.shape())
     #print(cam)
 
