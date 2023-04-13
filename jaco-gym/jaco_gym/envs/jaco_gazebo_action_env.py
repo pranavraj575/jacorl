@@ -12,8 +12,8 @@ class JacoEnv(gym.Env):
     def __init__(self):
         self.robot = JacoGazeboActionClient()
         self.action_dim = 7 #6 ADDED GRIPPY BOY
-        # self.obs_dim = 30
-        self.obs_dim = 12   # when using read_state_simple
+        self.obs_dim = 30
+        #self.obs_dim = 12   # when using read_state_simple
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
         high = np.inf * np.ones([self.obs_dim])
@@ -37,6 +37,39 @@ class JacoEnv(gym.Env):
         action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
         action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=0, NewMax=90)
         return action
+    
+    def action2diff(self,action):
+        action[0] = self.convert_action_to_deg(action[0], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # base rotation
+        action[1] = self.convert_action_to_deg(action[1], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # second joint, arm lever
+        action[2] = self.convert_action_to_deg(action[2], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # third joint, elbow thingy
+        action[3] = self.convert_action_to_deg(action[3], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # fourth joint, arm twist
+        action[4] = self.convert_action_to_deg(action[4], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # fifth joint, arm twist 2
+        action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # sixth join, wrist rotation
+        action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=-90, NewMax=90) # gripper, given full ROM
+        return action
+    def diff2deg(self,da,old_pos):
+        at_bounds=[False]*3
+        da[0] = (old_pos[0]+da[0])%360 # angular
+        
+        da[1] = np.clip(old_pos[1]+da[1],90,270) # bounded
+        at_bounds[0]= da[1]==90 or da[1]==270 # checks if its trying to go past limits
+        
+        da[2] = np.clip(old_pos[2]+da[2],0,180)
+        at_bounds[1]= da[2]==0 or da[2]==180 
+
+        da[3] = (old_pos[3]+da[3])%360 
+        
+        da[4] = (old_pos[4]+da[4])%360
+        
+        da[5] = (old_pos[5]+da[5])%360 
+        
+        da[6] = np.clip(old_pos[6]+da[6],0,90)
+        at_bounds[2]= da[6]==0 or da[6]==90
+
+        
+        return da,at_bounds
+    
+        
 
     def is_upside_down(self,orientation,tol=.02):
             # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
@@ -58,18 +91,27 @@ class JacoEnv(gym.Env):
         # Fingertips have effort
         # f1, f2 = self.robot.get_finger_coords()
         # f1[0] 
+        pass
 
     def step(self, action):
-        self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
-        self.action = np.radians(self.action) # convert to radians         
-        diff=self.robot.move_arm(self.action[:6]) # move arm 
+        #self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
+        #self.action = np.radians(self.action) # convert to radians         
+        self.robot.read_state() # loads the positions 
+        old_pos=np.array(self.robot.status.position[:8])
+        print(old_pos[:8])
+        old_pos[6]=(old_pos[6]+old_pos[7])/2
+        old_pos=np.degrees(old_pos)
+        self.action=self.action2diff(action)
+        self.action,at_bounds=self.diff2deg(self.action,old_pos[:7])
+        self.action=np.radians(self.action)
+        diff=self.robot.move_arm(np.array(self.action[:6])) # move arm 
         self.robot.move_finger(self.action[6]) # move fingy
         
         #print(diff, np.linalg.norm(diff)) # the difference between original position and the new position, 
                                           #in radians, measure of how much angle movement this made, could be useful
-        self.robot.sleepy(2) # wait
+        self.robot.sleepy(0.2) # wait
                 
-        self.observation = self.robot.read_state_simple()   # get state, only return 12 values instead of 36
+        self.observation = self.robot.read_state()#_simple()   # get state, only return 12 values instead of 36
         
         #===================== Calculate Reward ====================#
 
@@ -90,7 +132,7 @@ class JacoEnv(gym.Env):
                 self.reward -= 50
             else:  # Large positive reward for each cup in the goal zone
                 if(self.cup_at_goal_loc(pos)):
-                   print(cup, " is at the goal")
+                    print(cup, " is at the goal")
                     self.reward += 100
                 else: # Reward incentivising cups to be close to goal
                     dist_to_goal = self.cup_goal_x - pos.x
@@ -104,7 +146,7 @@ class JacoEnv(gym.Env):
         d = 0.1
         if(closest_dist != 100):
             print("Closest cup is ",closest_dist)
-            self.reward += g/math.max((closest_dist**2),d**2)
+            self.reward += g/max((closest_dist**2),d**2)
         print("Reward is ",self.reward)
 
         #===========================================================#
@@ -131,6 +173,9 @@ class JacoEnv(gym.Env):
         self.robot.cancel_move()
         self.robot.move_finger(0)
         #init_pos=[1,-.3,-.7,0,1,0,-1]
+        
+        #changes to specific pose
+        
         init_pos=[-.865,-.2,-.7,.2,-.8,-.22,-1]
         init_pos=self.action2deg(init_pos)
         init_pos=np.radians(init_pos)
