@@ -34,6 +34,18 @@ class JacoGazeboActionClient:
                 self.doota[data.name[i]]=data.pose[i]
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
+        
+        self.OFFSET=[
+        0,
+        180,
+        180,
+        180,
+        0,
+        90,
+        0
+        ]
+        self.OFFSET_rad=np.radians(self.OFFSET)
+        # Note that (0,0,0,0,0,0) in real robot is equivalent to (0,180,180,180,0,90) in simulation (ignoring grabber)
 
         # Unpause the physics
         rospy.wait_for_service('/gazebo/unpause_physics')
@@ -84,6 +96,10 @@ class JacoGazeboActionClient:
         # rospy.wait_for_service('/gazebo/unpause_physics')
         # unpause_gazebo = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
         # unpause_gazebo()
+        
+        #IMPORTANT: points_list is REAL ROBOT angles, we need to change it by OFFSET to make the simulation consistent
+        
+        points_list=points_list+self.OFFSET_rad[:6]
 
         self.client.wait_for_server()
         
@@ -213,7 +229,11 @@ class JacoGazeboActionClient:
     def get_object_data(self):
         return self.doota
     def get_obs(self):
-        return self.read_state_priviledged()
+        simulation_obs= self.read_state_priviledged()
+        #IMPORTANT: make sure the first 6 joint angles are the first 6 elements of this
+        for i in range(len(self.OFFSET_rad)):
+          simulation_obs[i]=(simulation_obs[i]-self.OFFSET_rad[i])%(2*np.pi)
+        return simulation_obs
     def get_obs_dim(self):
         return 31
     def read_state(self):

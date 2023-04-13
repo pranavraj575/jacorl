@@ -21,6 +21,19 @@ class JacoEnv(gym.Env):
         self.table_y_range=(-0.29,0.29)
         self.cup_ranges=((-1.4,-0.31),self.table_y_range)
         self.cup_goal_x = -0.3 # or below
+        
+        
+        
+        self.BOUNDS=[
+        (0,360), #UNBOUNDED, arm can rotate
+        (240,120),#(60,300), #this goes about (230, 130) IRL with 0 being straight up, about 130 degrees each side. in simulation, 180 is straight up
+        (220,140),#(25,335), # IRL (212,147) with  0 straight up, about 140 each side. in simulation, 180 is straight up
+        (0,360), # UNBOUNDED
+        (235,115), # (239,120) with 0 straight up, about 115 each side. In simulation, 0 is still straight up
+        (0,360), # UNBOUNDED
+        (0,90)
+        ]
+        #BOUNDS HERE FOR EACH JOINT in degrees
 
     def convert_action_to_deg(self, a, OldMin, OldMax, NewMin, NewMax):
         OldRange = (OldMax - OldMin)  
@@ -28,14 +41,12 @@ class JacoEnv(gym.Env):
         return (((a - OldMin) * NewRange) / OldRange) + NewMin
     
     
-    def action2deg(self, action):
-        action[0] = self.convert_action_to_deg(action[0], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
-        action[1] = self.convert_action_to_deg(action[1], OldMin=-1, OldMax=1, NewMin=90, NewMax=270)
-        action[2] = self.convert_action_to_deg(action[2], OldMin=-1, OldMax=1, NewMin=0, NewMax=180)
-        action[3] = self.convert_action_to_deg(action[3], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
-        action[4] = self.convert_action_to_deg(action[4], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
-        action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=0, NewMax=360)
-        action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=0, NewMax=90)
+    def action2deg(self, action): #OLD
+        for i in range(len(action)):
+            NewMin,NewMax=self.BOUNDS[i] 
+            if NewMax<= NewMin:
+                NewMax=NewMax+360
+            action[i]=self.convert_action_to_deg(action[i],OldMin=-1, OldMax=1, NewMin=NewMin,NewMax=NewMax)%360
         return action
     
     def action2diff(self,action):
@@ -47,26 +58,37 @@ class JacoEnv(gym.Env):
         action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # sixth join, wrist rotation
         action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=-90, NewMax=90) # gripper, given full ROM
         return action
+        
     def diff2deg(self,da,old_pos):
-        at_bounds=[False]*3
-        da[0] = (old_pos[0]+da[0])%360 # angular
-        
-        da[1] = np.clip(old_pos[1]+da[1],90,270) # bounded
-        at_bounds[0]= da[1]==90 or da[1]==270 # checks if its trying to go past limits
-        
-        da[2] = np.clip(old_pos[2]+da[2],0,180)
-        at_bounds[1]= da[2]==0 or da[2]==180 
+        #NOTE: old_pos is REAL angles, was converted in GET_OBS
+        # WE WILL WORK IN REAL ANGLES
+        at_bounds=[]
+        for i in range(len(da)):
+            if self.BOUNDS[i]==(0,360): #UNBOUNDED
+                da[i]=(old_pos[i]+da[i])%360
+            else:
+                l_bound,h_bound=self.BOUNDS[i]
+                da[i]=(old_pos[i]+da[i])%360
+                
+                if l_bound<h_bound:
+                    
+                    da[i]=np.clip(da[i],l_bound,h_bound)
+                    at_bounds.append(da[i]==l_bound or da[i]==h_bound)
+                    da[i]=da[i]%360
+                else:
+                    #extra work needed
+                    mid=(l_bound+h_bound)/2
+                    
+                    if da[i]>=mid:
+                        da[i]-=360
+                        # puts this value on [-360+mid,mid]
+                    l_bound-=360
+                    ## now its -360 < -360+mid < l_bound < 0 < h_bound < h_bound+mid < 360
+                    # hopefully da[i] is between lbound and h_bound
+                    da[i]=np.clip(da[i],l_bound,h_bound)
+                    at_bounds.append(da[i]==l_bound or da[i]==h_bound)
+                    da[i]=da[i]%360
 
-        da[3] = (old_pos[3]+da[3])%360 
-        
-        da[4] = (old_pos[4]+da[4])%360
-        
-        da[5] = (old_pos[5]+da[5])%360 
-        
-        da[6] = np.clip(old_pos[6]+da[6],0,90)
-        at_bounds[2]= da[6]==0 or da[6]==90
-
-        
         return da,at_bounds
     
         
@@ -96,13 +118,15 @@ class JacoEnv(gym.Env):
     def step(self, action):
         #self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
         #self.action = np.radians(self.action) # convert to radians         
-        self.robot.get_obs() # loads the positions 
-        old_pos=np.array(self.robot.status.position[:8])
-        print(old_pos[:8])
+        
+        old_pos=self.robot.get_obs()[:8] # loads the positions in REAL ANGLES
+        
         old_pos[6]=(old_pos[6]+old_pos[7])/2
         old_pos=np.degrees(old_pos)
         self.action=self.action2diff(action)
         self.action,at_bounds=self.diff2deg(self.action,old_pos[:7])
+        print(at_bounds)
+        
         self.action=np.radians(self.action)
         diff=self.robot.move_arm(np.array(self.action[:6])) # move arm 
         self.robot.move_finger(self.action[6]) # move fingy
@@ -173,9 +197,17 @@ class JacoEnv(gym.Env):
         
         #changes to specific pose
         
-        init_pos=[-.865,-.2,-.7,.2,-.8,-.22,-1]
-        init_pos=self.action2deg(init_pos)
+        #init_pos=[-.865,-.2,-.7,.2,-.8,-.22,-1]
+        #init_pos=self.action2deg(init_pos)
+        #init_pos=np.radians(init_pos)
+        #print(init_pos)
+        
+        init_pos=np.array([16.,  0., 220., 36.,  36., 50., 0.])
+        # in DEGREES the initial angles
         init_pos=np.radians(init_pos)
+        # in radians the inital angle
+        
+        
         #pos = [0, 180, 180, 0, 0, 0]
         #pos = np.radians(pos)
         self.robot.move_arm(init_pos[:6])
