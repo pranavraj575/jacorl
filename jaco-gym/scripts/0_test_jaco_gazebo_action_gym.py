@@ -4,7 +4,7 @@ import random
 import numpy as np 
 import rospy
 import ros_numpy
-from PIL import Image
+from PIL import Image as IMG
 
 # from stable_baselines.common.env_checker import check_env
 
@@ -56,7 +56,7 @@ for episode in range(3):
     print("camera raw")
     img_numpy = ros_numpy.numpify(raw)
     print(img_numpy.shape)
-    img = Image.fromarray(img_numpy, "RGB")
+    img = IMG.fromarray(img_numpy, "RGB")
     img.save("myimg.jpeg")
     #print(raw.shape())
     #print(cam)

@@ -5,6 +5,8 @@ import rospy
 import numpy as np
 import random
 import math
+import ros_numpy
+from PIL import Image as IMG
 
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal, JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -186,6 +188,18 @@ class JacoGazeboActionClient:
         raw = rospy.wait_for_message("/wristcam/image_raw",Image)
         compressed = rospy.wait_for_message("/wristcam/image_raw/compressed",CompressedImage)
         return camera_info,raw,compressed
+        
+    def get_image_numpy(self):
+        camera_info,raw,compressed=self.get_image()
+        return ros_numpy.numpify(raw)
+        
+    def get_image_PIL(self):
+        img_numpy=self.get_image_numpy()
+        return IMG.fromarray(img_numpy, "RGB")
+    
+    def save_image(self,filee):
+        img=self.get_image_PIL()
+        img.save(filee)
 
     def read_state_old(self):
         self.status = rospy.wait_for_message("/j2n6s200/effort_joint_trajectory_controller/state", JointTrajectoryControllerState)

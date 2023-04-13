@@ -54,7 +54,7 @@ class JacoEnv(gym.Env):
     
     def cup_in_hand(self,pos):
         self.robot.read_state()
-        print(self.robot.eff[6:])
+        print('cup in hand:',self.robot.eff[6:])
 
     def step(self, action):
         self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
