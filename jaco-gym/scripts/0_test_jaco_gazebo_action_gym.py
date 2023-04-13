@@ -22,8 +22,6 @@ env = gym.make('JacoGazebo-v1')
 # check_env(env, warn=True)
 # print("check done")
 
-#test
-
 print('Action space:')
 print(env.action_space)
 print(env.action_space.high)
@@ -45,34 +43,26 @@ for episode in range(3):
     #run rostopic list to get all topics being published (while robot running)
     obs = env.reset()
     rewards = []
-    print('IMAgE:')
-    camera_info,raw,compressed=env.robot.get_image()
-    # camera_info
-    # robot = 
-    print('image recieved')
-    print("camera info")
-    #print("-------------")
-    #print(camera_info)
-    print("camera raw")
-    img_numpy = env.robot.get_image_numpy()
-    print(img_numpy.shape)
-    img = env.robot.get_image_PIL()
+    # camera_info,raw,compressed=env.robot.get_image()
+    # img_numpy = env.robot.get_image_numpy()
+    # print(img_numpy.shape)
+    # img = env.robot.get_image_PIL()
     
-    env.robot.save_image("myimg.jpeg")
-    #print(raw.shape())
-    #print(cam)
+    # env.robot.save_image("myimg.jpeg")
 
     for t in range(5):
 
         action = env.action_space.sample()
+        #action = [0,0,0,0,0,0,-1+2*t/4] # -1 to 1
+        print("last joint angle is %f\n",-1+2*t/4)
         obs, reward, done, info = env.step(action)
 
-        print("timestep:", t)
-        print("action: ", action)
-        print("observation: ", obs)
-        print("reward: ", reward)
-        print("done: ", done)
-        print("info: ", info)
+        # print("timestep:", t)
+        # print("action: ", action)
+        # print("observation: ", obs)
+        # print("reward: ", reward)
+        # print("done: ", done)
+        # print("info: ", info)
 
         if done:
             rewards.append(reward)

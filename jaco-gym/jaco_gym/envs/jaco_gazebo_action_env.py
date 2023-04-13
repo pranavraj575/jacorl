@@ -52,9 +52,12 @@ class JacoEnv(gym.Env):
     def cup_at_goal_loc(self,pos):
         return self.cup_on_table(pos) & (pos.x >= self.cup_goal_x)
     
-    def cup_in_hand(self,pos):
-        self.robot.read_state()
-        print('cup in hand:',self.robot.eff[6:])
+    def cup_in_hand(self,cup_pos,tol=0.05):
+        # Distance between finger coordinates is "small"
+        # Cup center is between finger coordinates
+        # Fingertips have effort
+        # f1, f2 = self.robot.get_finger_coords()
+        # f1[0] 
 
     def step(self, action):
         self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
@@ -73,21 +76,21 @@ class JacoEnv(gym.Env):
         self.tip_coord = self.robot.get_tip_coord()
         self.reward = 100
         closest_dist = 100
+        self.robot.read_state()
+        print(self.robot.eff[7])
+        print(self.robot.eff[8])
         obj_data = self.robot.get_object_data()
         cups = ["cup1","cup2","cup3"]
         for cup in cups:
             pos = obj_data[cup].position
             self.cup_in_hand(pos)
-            # print("\n--------------------")
-            # self.robot.cup_in_hand(pos)
-            # print("--------------------\n")
             # Negative reward for each cup that is off the table
             if (not self.cup_on_table(pos)):
                 print(cup, " is off the table")
                 self.reward -= 50
             else:  # Large positive reward for each cup in the goal zone
                 if(self.cup_at_goal_loc(pos)):
-                    print(cup, " is at the goal")
+                   print(cup, " is at the goal")
                     self.reward += 100
                 else: # Reward incentivising cups to be close to goal
                     dist_to_goal = self.cup_goal_x - pos.x
@@ -97,9 +100,11 @@ class JacoEnv(gym.Env):
                         closest_dist = dist_to_cup
         # Reward incentivising robot tip to be close to the nearest cup not 
         # already in the goal zone, as long as there are sitll cups not at goal
+        g = 10
+        d = 0.1
         if(closest_dist != 100):
-            print(cup, " is dist ", closest_dist)
-            self.reward -= closest_dist * 10
+            print("Closest cup is ",closest_dist)
+            self.reward += g/math.max((closest_dist**2),d**2)
         print("Reward is ",self.reward)
 
         #===========================================================#

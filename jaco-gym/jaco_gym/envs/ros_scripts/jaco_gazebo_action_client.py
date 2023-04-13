@@ -243,6 +243,13 @@ class JacoGazeboActionClient:
         # return self.status
         return np.asarray(self.pos + self.vel)
 
+    def get_finger_coords(self):
+        self.status = rospy.wait_for_message("/gazebo/link_states", LinkStates)
+        self.joint_names = self.status.name
+        self.pos = self.status.pose
+        return ([self.status.pose[7].position.x, self.status.pose[7].position.y, self.status.pose[7].position.z],
+               [self.status.pose[8].position.x, self.status.pose[8].position.y, self.status.pose[8].position.z])
+
 
     def get_tip_coord(self):
         self.status = rospy.wait_for_message("/gazebo/link_states", LinkStates)
