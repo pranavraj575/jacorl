@@ -35,6 +35,12 @@ class JacoGazeboActionClient:
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
+        # Subscribe to the camera
+        def _camera_img_callback(data):
+            self.camera_img = data
+        self.image_pub = rospy.Publisher("/wristcam/image_raw", Image)
+        self.image_sub=rospy.Subscriber("/wristcam/image_raw",Image,_camera_img_callback)
+
         # Unpause the physics
         rospy.wait_for_service('/gazebo/unpause_physics')
         unpause_gazebo = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
@@ -183,15 +189,16 @@ class JacoGazeboActionClient:
     def cancel_move(self):
         self.client.cancel_all_goals()
     
-    def get_image(self):
-        camera_info = rospy.wait_for_message("/wristcam/camera_info", CameraInfo)
-        raw = rospy.wait_for_message("/wristcam/image_raw",Image)
-        compressed = rospy.wait_for_message("/wristcam/image_raw/compressed",CompressedImage)
-        return camera_info,raw,compressed
+    # def get_image(self):
+    #     camera_info = rospy.wait_for_message("/wristcam/camera_info", CameraInfo)
+    #     raw = rospy.wait_for_message("/wristcam/image_raw",Image)
+    #     compressed = rospy.wait_for_message("/wristcam/image_raw/compressed",CompressedImage)
+    #     return camera_info,raw,compressed
         
     def get_image_numpy(self):
-        camera_info,raw,compressed=self.get_image()
-        return ros_numpy.numpify(raw)
+        return ros_numpy.numpify(self.camera_img)
+        # camera_info,raw,compressed=self.get_image()
+        # return ros_numpy.numpify(raw)
         
     def get_image_PIL(self):
         img_numpy=self.get_image_numpy()

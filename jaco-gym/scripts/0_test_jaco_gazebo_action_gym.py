@@ -39,11 +39,12 @@ print(env.observation_space.low)
 
 render_flag=True
 
+old_raw = None
 for episode in range(3):
     #run rostopic list to get all topics being published (while robot running)
     obs = env.reset()
     rewards = []
-    # camera_info,raw,compressed=env.robot.get_image()
+    env.robot.save_image(str(episode)+".jpg")
     # img_numpy = env.robot.get_image_numpy()
     # print(img_numpy.shape)
     # img = env.robot.get_image_PIL()
