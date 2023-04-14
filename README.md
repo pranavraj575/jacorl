@@ -77,6 +77,8 @@ Note, the kinova-ros package was adapted from the [official package](https://git
 
 ### For the physical arm (only tested on ROS Kinetic)
 
+First change kinova-ros/kinova_bringup/launch/config/robot_parameters.yaml to the correct settings (usb vs ethernet, ip address)
+
 In terminal 1:
 ```bash
 roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=j2n6s200
