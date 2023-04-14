@@ -31,7 +31,6 @@ class JacoEnv(gym.Env):
         (0,360), # UNBOUNDED
         (235,115), # (239,120) with 0 straight up, about 115 each side. In simulation, 0 is still straight up
         (0,360), # UNBOUNDED
-        (0,90)
         ]
         #BOUNDS HERE FOR EACH JOINT in degrees
 
@@ -56,7 +55,9 @@ class JacoEnv(gym.Env):
         action[3] = self.convert_action_to_deg(action[3], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # fourth joint, arm twist
         action[4] = self.convert_action_to_deg(action[4], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # fifth joint, arm twist 2
         action[5] = self.convert_action_to_deg(action[5], OldMin=-1, OldMax=1, NewMin=-15, NewMax=15) # sixth join, wrist rotation
-        action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=-90, NewMax=90) # gripper, given full ROM
+        
+        #DIFFERENT: gripper just given an activation
+        action[6] = self.convert_action_to_deg(action[6], OldMin=-1, OldMax=1, NewMin=0, NewMax=90) # gripper, given full ROM
         return action
         
     def diff2deg(self,da,old_pos):
@@ -119,12 +120,11 @@ class JacoEnv(gym.Env):
         #self.action = self.action2deg(action) # convert action from range [-1, 1] to [0, 360] 
         #self.action = np.radians(self.action) # convert to radians         
         
-        old_pos=self.robot.get_obs()[:8] # loads the positions in REAL ANGLES
+        old_pos=self.robot.get_obs()[:6] # loads the positions in REAL ANGLES
         
-        old_pos[6]=(old_pos[6]+old_pos[7])/2
         old_pos=np.degrees(old_pos)
         self.action=self.action2diff(action)
-        self.action,at_bounds=self.diff2deg(self.action,old_pos[:7])
+        self.action[:6],at_bounds=self.diff2deg(self.action[:6],old_pos)
         print(at_bounds)
         
         self.action=np.radians(self.action)
