@@ -59,7 +59,7 @@ pip3 install -e .
 ```bash
 cd ~/catkin_ws
 source devel/setup.bash
-export GAZEBO_MODEL_PATH=~/catkin_ws/src/kinova-ros/kinova_gazebo/models
+export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
 ```
 
 6. Install the ROS packages and build.
