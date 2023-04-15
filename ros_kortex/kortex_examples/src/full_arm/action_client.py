@@ -17,10 +17,15 @@ import time
 
 from kortex_driver.srv import *
 from kortex_driver.msg import *
-
-
-class ExampleFullArmMovement:
-    def __init__(self):
+from sensor_msgs.msg import JointState
+# to be run either connected through real arm (make sure driver is run)
+# or run with gazebo launch being run
+class ArmInterface:
+    def __init__(self,ROBOT_NAME='my_gen3'):
+        joint_namespace='/'+ROBOT_NAME+'/joint_states'
+        def joint_callback(data):
+            self.joint_data=data
+        self.joint_sub=rospy.Subscriber(joint_namespace,JointState,joint_callback)
         try:
             rospy.init_node('example_full_arm_movement_python')
 
@@ -73,6 +78,13 @@ class ExampleFullArmMovement:
             self.is_init_success = False
         else:
             self.is_init_success = True
+            
+        
+        # is this necessary?
+        # clear faults
+        self.example_clear_faults()
+        # Activate the action notifications
+        self.example_subscribe_to_a_robot_notification()
 
     def cb_action_topic(self, notif):
         self.last_action_notif_type = notif.action_event
@@ -101,7 +113,8 @@ class ExampleFullArmMovement:
         else:
             rospy.loginfo("Successfully activated the Action Notifications!")
 
-        rospy.sleep(1.0)
+        #rospy.sleep(1.0)
+        rospy.sleep(0.01)
         return True
 
     def example_clear_faults(self):
@@ -112,8 +125,18 @@ class ExampleFullArmMovement:
             return False
         else:
             rospy.loginfo("Cleared the faults successfully")
-            rospy.sleep(2.5)
+            #rospy.sleep(2.5)
+            rospy.sleep(0.01)
             return True
+    def get_obs_dim(self):
+        return 7*3
+    def get_obs(self):
+        return self.get_joint_state()
+    def get_joint_state(self):
+        #returns tuple with pos, velocity, effort
+        curr=self.joint_data
+        return curr.position+curr.velocity+curr.effort
+    
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
@@ -133,7 +156,7 @@ class ExampleFullArmMovement:
                 i=0
                 for obj in (req.input.oneof_action_parameters.reach_joint_angles[0].joint_angles.joint_angles):
                     
-                    obj.value=angles[i] # now robot thinks "angles" is the home position
+                    obj.value=angles[i]# now robot thinks "angles" is the home position 
                     # yes this is janky
                     i+=1
                 self.execute_action(req)
@@ -141,7 +164,7 @@ class ExampleFullArmMovement:
                 rospy.logerr("Failed to call ExecuteAction")
                 return False
             else:
-                return self.wait_for_action_end_or_abort()
+                return self.wait_for_action_end_or_abort() #True
 
 
 
@@ -166,94 +189,3 @@ class ExampleFullArmMovement:
         else:
             time.sleep(0.5)
             return True
-
-    def main(self):
-        # For testing purposes
-        success = self.is_init_success
-        try:
-            rospy.delete_param("/kortex_examples_test_results/full_arm_movement_python")
-        except:
-            pass
-
-        if success:
-            #*******************************************************************************
-            # Make sure to clear the robot's faults else it won't move if it's already in fault
-            success &= self.example_clear_faults()
-            #*******************************************************************************
-            
-            #*******************************************************************************
-            # Activate the action notifications
-            success &= self.example_subscribe_to_a_robot_notification()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Move the robot to the Home position with an Action
-            success &= self.example_home_the_robot()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Example of gripper command
-            # Let's fully open the gripper
-            if self.is_gripper_present:
-                success &= self.example_send_gripper_command(0.0)
-            else:
-                rospy.logwarn("No gripper is present on the arm.")  
-            success &= self.example_send_cartesian_pose()
-            success &= self.example_send_gripper_command(1.0)
-            success &= self.example_send_gripper_command(0.0)
-            success &= self.example_send_gripper_command(1.0)
-            success &= self.example_send_gripper_command(0.0)
-            success &= self.example_send_gripper_command(1.0)
-            success &= self.example_send_gripper_command(0.0)
-            success &= self.example_send_joint_angles()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Set the reference frame to "Mixed"
-            success &= self.example_set_cartesian_reference_frame()
-
-            # Example of cartesian pose
-            # Let's make it move in Z
-            success &= self.example_send_cartesian_pose()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Example of angular position
-            # Let's send the arm to vertical position
-            success &= self.example_send_joint_angles()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Example of gripper command
-            # Let's close the gripper at 50%
-            if self.is_gripper_present:
-                success &= self.example_send_gripper_command(0.5)
-            else:
-                rospy.logwarn("No gripper is present on the arm.")    
-            #*******************************************************************************
-        
-            #*******************************************************************************
-            # Move the robot to the Home position with an Action
-            success &= self.example_home_the_robot()
-            #*******************************************************************************
-
-            #*******************************************************************************
-            # Example of waypoint
-            # Let's move the arm
-            success &= self.example_cartesian_waypoint_action()
-
-            #*******************************************************************************
-            # Move the robot to the Home position with an Action
-            success &= self.example_home_the_robot()
-            #*******************************************************************************
-
-        # For testing purposes
-        rospy.set_param("/kortex_examples_test_results/full_arm_movement_python", success)
-
-        if not success:
-            rospy.logerr("The example encountered an error.")
-
-
-if __name__ == "__main__":
-    ex = ExampleFullArmMovement()
-    ex.main()

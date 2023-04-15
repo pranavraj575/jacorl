@@ -150,7 +150,7 @@ class ExampleFullArmMovement:
                 print(req.input)
                 for obj in (req.input.oneof_action_parameters.reach_joint_angles[0].joint_angles.joint_angles):
                     print(obj.value)
-                    obj.value=0
+                    obj.value=0                                        
                     print()
                 self.execute_action(req)
             except rospy.ServiceException:
@@ -208,7 +208,7 @@ class ExampleFullArmMovement:
         # Call the service
         rospy.loginfo("Sending the robot to the cartesian pose...")
         try:
-            print(req)
+            print(req)                
             self.execute_action(req)
         except rospy.ServiceException:
             rospy.logerr("Failed to call ExecuteWaypointTrajectory")
