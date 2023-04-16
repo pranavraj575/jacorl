@@ -284,3 +284,5 @@ class JacoEnv(gym.Env):
             #time.sleep(.5)
             rospy.sleep(0.5)
             return True
+    def render(self, mode='human', close=False):
+        pass
