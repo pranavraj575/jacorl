@@ -77,32 +77,28 @@ Note, the kinova-ros package was adapted from the [official package](https://git
 
 ## Test your environment
 
-### For the physical arm (only tested on ROS Kinetic)
-
-First change kinova-ros/kinova_bringup/launch/config/robot_parameters.yaml to the correct settings (usb vs ethernet, ip address)
+### For the physical arm
 
 In terminal 1:
 ```bash
-roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=j2n6s200
+roslaunch kortex_driver kortex_driver.launch dof:=6 gripper:=robotiq_2f_85 ip_address:=192.168.1.10
 ```
 
 In terminal 2:
 ```bash
-python3 scripts/0_test_jaco_real.py
+python3 src/jaco-gym/scripts/test_actions.py
 ```
 
 ### For the arm in Gazebo (tested on ROS Melodic and Kinetic)
 
 In terminal 1:
 ```bash
-roslaunch kinova_gazebo robot_launch_render.launch kinova_robotType:=j2n6s200     # enable graphic rendering
-# OR
-roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s200   # disable graphic rendering
+roslaunch kortex_gazebo spawn_kortex_robot.launch dof:=6 gripper:=robotiq_2f_85 start_rviz:=false
 ```
 
 In terminal 2:
 ```bash
-python3 scripts/0_test_jaco_gazebo_action_gym.py
+python3 src/jaco-gym/scripts/test_actions.py
 ```
 
 
