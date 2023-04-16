@@ -49,5 +49,9 @@
       </camera>
     </gui>
 
+
+    
+    <plugin name="physics_plugin" filename="libgazebo_physics_plugin.so"/>
+
   </world>
 </sdf>

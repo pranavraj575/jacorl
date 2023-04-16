@@ -32,3 +32,9 @@ register(
     max_episode_steps=50
 )
 
+# cup stacky
+register(
+    id='JacoCups-v0',
+    entry_point='jaco_gym.envs.task_envs.stack_cups:JacoStackCups',
+    max_episode_steps=50
+)

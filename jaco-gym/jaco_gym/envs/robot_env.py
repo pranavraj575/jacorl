@@ -15,8 +15,7 @@ import sys
 import rospy
 import time
 import numpy as np
-#from gym.envs.registration import register
-
+from PIL import Image as IMG
 
 from kortex_driver.srv import Base_ClearFaults, ReadAction, ExecuteAction, SetCartesianReferenceFrame,SendGripperCommand,OnNotificationActionTopic
 from kortex_driver.srv import GetProductConfiguration, ValidateWaypointList,OnNotificationActionTopicRequest,ReadActionRequest,ExecuteActionRequest,SendGripperCommandRequest
@@ -27,17 +26,12 @@ import ros_numpy
 # to be run either connected through real arm (make sure driver is run)
 # or run with gazebo launch being run
 
-#register(
-#    id='BasicJacoEnv-v0',
-#    entry_point='jaco_gym.envs.robot_env:JacoEnv',
-#    max_episode_steps=50
-#)
 
 class JacoEnv(gym.Env):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
-                    init_pos=(0,0,0,0,0,0), #HOME position
+                    init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
                     bounds=# hard bounds for each joint
                       (
@@ -251,7 +245,6 @@ class JacoEnv(gym.Env):
             try:
                 i=0
                 for obj in (req.input.oneof_action_parameters.reach_joint_angles[0].joint_angles.joint_angles):
-                    
                     obj.value=angles[i]# now robot thinks "angles" is the home position 
                     # yes this is janky
                     i+=1

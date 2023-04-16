@@ -15,7 +15,7 @@ from PIL import Image as IMG
 
 rospy.init_node("test_client", log_level=rospy.INFO)
 
-env = gym.make('BasicJacoEnv-v0')
+env = gym.make('JacoCups-v0')
 
 ## It will check your custom environment and output additional warnings if needed
 # print("starting check")
@@ -44,7 +44,7 @@ for episode in range(3):
     #run rostopic list to get all topics being published (while robot running)
     obs = env.reset()
     rewards = []
-    #env.save_image(str(episode)+".jpg")
+    env.save_image(str(episode)+".jpg")
     # img_numpy = env.robot.get_image_numpy()
     # print(img_numpy.shape)
     # img = env.robot.get_image_PIL()
