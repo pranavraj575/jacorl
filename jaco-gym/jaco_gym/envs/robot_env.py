@@ -136,7 +136,7 @@ class JacoEnv(gym.Env):
         # todo later, push all angles in bounds
         return angles
     def step(self,action):
-        old_pos=self.get_joint_state()[0][:6]
+        old_pos=np.degrees(self.get_joint_state()[0][1:]) #FINGER is first one
         arm_diff=action[:6]*self.diffs
         arm_angles=old_pos+arm_diff
         arm_angles=self.in_bounds(arm_angles)
@@ -153,8 +153,6 @@ class JacoEnv(gym.Env):
         return obs,REWARD,DONE,INFO
     
     def reset(self):
-        print("RESETTING")
-        self.wait_for_action_end_or_abort()
         self.move_fingy(0)
         self.move_arm(self.init_pos)
         obs=self.get_obs()
@@ -224,10 +222,10 @@ class JacoEnv(gym.Env):
     def save_image(self,filee):
         img=self.get_image_PIL()
         img.save(filee)
-        
     def get_joint_state(self):
         #returns tuple with pos, velocity, effort
         #THIS IS IN RADIANS
+        # NOTE: the order is finger, then the 6 joints
         curr=self.joint_data
         self.position=curr.position
         self.velocity=curr.velocity
