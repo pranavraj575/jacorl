@@ -13,9 +13,9 @@ from PIL import Image as IMG
 # roslaunch kinova_gazebo robot_launch_render.launch kinova_robotType:=j2n6s300
 
 
-rospy.init_node("kinova_client", anonymous=True, log_level=rospy.INFO)
+rospy.init_node("kinova_client", log_level=rospy.INFO)
 
-env = gym.make('JacoGazebo-v1')
+env = gym.make('BasicJacoEnv-v0')
 
 ## It will check your custom environment and output additional warnings if needed
 # print("starting check")
