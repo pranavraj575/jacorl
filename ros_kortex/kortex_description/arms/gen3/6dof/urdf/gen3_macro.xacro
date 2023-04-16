@@ -247,6 +247,42 @@
         <parent link="${prefix}end_effector_link" />
         <child  link="${prefix}camera_link" />
       </joint>
+
+      
+      <joint name="camera_optical_joint" type="fixed">
+          <parent link="${prefix}camera_link"/>
+          <child link="camera_link_optical"/>
+          <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      </joint>
+
+    <link name="camera_link_optical"></link>
+
+      <gazebo reference="${prefix}camera_link">
+        <material>Gazebo/Red</material>
+
+        <sensor name="camera" type="camera">
+            <pose> 0 0 0 0 0 0 </pose>
+            <visualize>true</visualize>
+            <update_rate>10</update_rate>
+            <camera>
+                <horizontal_fov>1.089</horizontal_fov>
+                <image>
+                    <format>R8G8B8</format>
+                    <width>640</width>
+                    <height>480</height>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>8.0</far>
+                </clip>
+            </camera>
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                <cameraName>camera</cameraName>
+                <frame_name>camera_link_optical</frame_name>
+            </plugin>
+        </sensor>
+      </gazebo>
+
       <link name="${prefix}camera_depth_frame" />
       <joint name="${prefix}depth_module" type="fixed">
         <origin xyz="0.0275 0.066 -0.00305" rpy="3.14159265358979 3.14159265358979 0" />

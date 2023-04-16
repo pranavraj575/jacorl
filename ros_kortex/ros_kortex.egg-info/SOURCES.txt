@@ -1,0 +1,5 @@
+setup.py
+ros_kortex.egg-info/PKG-INFO
+ros_kortex.egg-info/SOURCES.txt
+ros_kortex.egg-info/dependency_links.txt
+ros_kortex.egg-info/top_level.txt

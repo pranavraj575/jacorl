@@ -25,3 +25,10 @@ register(
 )
 
 
+# environment using the ROS Topics to move the arm in Gazebo
+register(
+    id='BasicJacoEnv-v0',
+    entry_point='jaco_gym.envs.robot_env:JacoEnv',
+    max_episode_steps=50
+)
+

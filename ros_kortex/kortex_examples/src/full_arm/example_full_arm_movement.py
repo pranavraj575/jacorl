@@ -18,7 +18,6 @@ import time
 from kortex_driver.srv import *
 from kortex_driver.msg import *
 
-
 class ExampleFullArmMovement:
     def __init__(self):
         try:
@@ -34,8 +33,11 @@ class ExampleFullArmMovement:
             rospy.loginfo("Using robot_name " + self.robot_name + " , robot has " + str(self.degrees_of_freedom) + " degrees of freedom and is_gripper_present is " + str(self.is_gripper_present))
 
             # Init the action topic subscriber
-            self.action_topic_sub = rospy.Subscriber("/" + self.robot_name + "/action_topic", ActionNotification, self.cb_action_topic)
-            self.last_action_notif_type = None
+            print("FIX THIS")
+            #print("HERE")
+            #self.action_topic_sub = rospy.Subscriber("/" + self.robot_name + "/action_topic", ActionNotification, self.cb_action_topic)
+            #print("FERE")
+            #self.last_action_notif_type = None
 
             # Init the services
             clear_faults_full_name = '/' + self.robot_name + '/base/clear_faults'

@@ -6,7 +6,7 @@ setup(name='jaco_gym',
           'scipy>=1.2.0',
           'stable-baselines[mpi]',
           'rospkg',
-          'numpy==1.19.5'
+          'numpy==1.19.5',
           'box2d', 
           'box2d-kengz', 
           'pyyaml', 

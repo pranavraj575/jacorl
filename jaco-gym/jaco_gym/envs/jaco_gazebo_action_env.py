@@ -10,6 +10,8 @@ from jaco_gym.envs.ros_scripts.jaco_gazebo_action_client import JacoGazeboAction
 class JacoEnv(gym.Env):
 
     def __init__(self):
+        print("WRONG ONE")
+        raise Exception("WERONG")
         self.robot = JacoGazeboActionClient()
         self.action_dim = 7 #6 ADDED GRIPPY BOY
         self.obs_dim = self.robot.get_obs_dim()
