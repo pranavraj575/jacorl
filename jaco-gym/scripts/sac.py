@@ -7,7 +7,11 @@ import rospy
 import rlkit.torch.pytorch_util as ptu
 from rlkit.data_management.env_replay_buffer import EnvReplayBuffer
 #from rlkit.envs.wrappers import NormalizedBoxEnv
-from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
+#from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
+from jaco_gym.envs.task_envs.stack_cups_gazebo import JacoStackCupsGazebo
+
+
+
 from rlkit.launchers.launcher_util import setup_logger
 from rlkit.samplers.data_collector import MdpPathCollector
 from rlkit.torch.sac.policies import TanhGaussianPolicy, MakeDeterministic
@@ -17,8 +21,8 @@ from rlkit.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
 
 
 def experiment(variant):
-    expl_env = JacoEnv() #NormalizedBoxEnv(HalfCheetahEnv())
-    eval_env = JacoEnv() #NormalizedBoxEnv(HalfCheetahEnv())
+    expl_env = env# JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
+    eval_env = env#JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
     obs_dim = expl_env.observation_space.low.size
     action_dim = eval_env.action_space.low.size
 
@@ -111,8 +115,8 @@ if __name__ == "__main__":
             use_automatic_entropy_tuning=True,
         ),
     )
-    rospy.init_node("kinova_client", anonymous=True, log_level=rospy.INFO)
-    env_id = 'JacoGazebo-v1'
+    rospy.init_node("kinova_client", log_level=rospy.INFO)
+    env_id = 'JacoCupsGazebo-v0'
     env = gym.make(env_id)
     env.reset()
     experiment(variant)
