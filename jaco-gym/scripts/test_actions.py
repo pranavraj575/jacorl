@@ -13,7 +13,7 @@ from PIL import Image as IMG
 # roslaunch kinova_gazebo robot_launch_render.launch kinova_robotType:=j2n6s300
 
 
-rospy.init_node("kinova_client", log_level=rospy.INFO)
+rospy.init_node("test_client", log_level=rospy.INFO)
 
 env = gym.make('BasicJacoEnv-v0')
 
