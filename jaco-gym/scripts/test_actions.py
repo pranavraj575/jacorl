@@ -15,7 +15,7 @@ from PIL import Image as IMG
 
 rospy.init_node("test_client", log_level=rospy.INFO)
 
-env = gym.make('JacoCups-v0')
+env = gym.make('JacoCupsGazebo-v0')
 
 ## It will check your custom environment and output additional warnings if needed
 # print("starting check")

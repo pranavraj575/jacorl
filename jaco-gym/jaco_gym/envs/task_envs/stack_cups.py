@@ -1,5 +1,5 @@
 from jaco_gym.envs.robot_env import JacoEnv
-class JacoStackCups(JacoEnv):
+class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
