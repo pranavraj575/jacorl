@@ -1,4 +1,5 @@
 from jaco_gym.envs.robot_env import JacoEnv
+import numpy as np
 class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
@@ -10,10 +11,7 @@ class JacoStackCupsGazebo(JacoEnv):
     
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
     def step(self,action):
-        
-        
         joint_obs,_,_,_=super().step(action)
-        
         
         REWARD=-1
         DONE=False
@@ -25,12 +23,13 @@ class JacoStackCupsGazebo(JacoEnv):
     def reset(self):
         joint_obs=super().reset()
         print('here')
-        return joint_obs
+        obs=self.get_obs()
+        return obs
         
     def get_obs(self):
         print("good")
         pos,vel,eff= self.get_joint_state()
-        return pos+vel+eff
+        return np.array(pos+vel+eff)
         
         # should prob use self.get_joint_state as well as other stuff
         

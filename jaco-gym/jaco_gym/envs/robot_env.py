@@ -140,7 +140,7 @@ class JacoEnv(gym.Env):
     def get_obs(self):
         print("SPECIFY GET OBS IN SUBCLASS")
         pos,vel,eff= self.get_joint_state()
-        return pos+vel+eff
+        return np.array(pos+vel+eff)
         
         # should prob use self.get_joint_state as well as other stuff
         
