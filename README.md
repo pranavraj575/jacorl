@@ -13,7 +13,7 @@
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
 
-sudo install stuff:
+Complete the following sudo installs:
 
 ```bash
 sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
@@ -24,23 +24,7 @@ sudo apt-get install swig ffmpeg
 
 2. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
 
-
-3. Install dependencies for the Kinova-ros package, as indicated [here](https://github.com/Kinovarobotics/kinova-ros/wiki/Gazebo).
-
-```bash
-sudo apt-get install ros-<distro>-gazebo-ros-control
-sudo apt-get install ros-<distro>-ros-controllers*
-sudo apt-get install ros-<distro>-trac-ik-kinematics-plugin
-sudo apt-get install ros-<distro>-effort-controllers 
-sudo apt-get install ros-<distro>-joint-state-controller 
-sudo apt-get install ros-<distro>-joint-trajectory-controller 
-sudo apt-get install ros-<distro>-controller-*
-```
-
-(replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
-
-
-4. Install [jacorl](https://github.com/pranavraj575/jacorl) as src (sophia make sure you comment out stable-baselines from setup.py). also do kortex
+3. Install [jacorl](https://github.com/pranavraj575/jacorl) as src
 
 ```bash
 cd ~/catkin_ws
@@ -56,7 +40,24 @@ cd ../ros_kortex
 pip3 install -e .
 ```
 
-5. either run every time or add to bashrc
+4. Install dependencies for the ros-kortex package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex).
+
+```bash
+    sudo apt install python3 python3-pip
+    sudo python3 -m pip install conan==1.59
+    conan config set general.revisions_enabled=1
+    conan profile new default --detect > /dev/null
+    conan profile update settings.compiler.libcxx=libstdc++11 default
+    mkdir -p catkin_workspace/src
+    cd catkin_workspace/src
+    git clone -b <branch-name> https://github.com/Kinovarobotics/ros_kortex.git
+    cd ../
+    rosdep install --from-paths src --ignore-src -y
+```
+
+(replace `<branch-name>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
+
+5. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
 
 ```bash
 cd ~/catkin_ws
