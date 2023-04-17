@@ -33,15 +33,6 @@ class JacoEnv(gym.Env):
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
-                    bounds=# hard bounds for each joint
-                      (
-                        None, #UNBOUNDED, arm can rotate
-                        (240,120),#this goes about (230, 130) IRL with 0 being straight up, about 130 degrees each side. in simulation, 180 is straight up
-                        (220,140),# IRL (212,147) with  0 straight up, about 140 each side. in simulation, 180 is straight up
-                        None, # UNBOUNDED
-                        (235,115), # (239,120) with 0 straight up, about 115 each side. In simulation, 0 is still straight up
-                        None, # UNBOUNDED
-                      )
                     ):
     
         self.action_dim=7
@@ -50,9 +41,6 @@ class JacoEnv(gym.Env):
         self.init_pos=init_pos
         
         self.diffs=differences
-        
-        self.BOUNDS=bounds
-        #BOUNDS HERE FOR EACH JOINT in degrees
         
         
         high = np.ones([self.action_dim])
@@ -126,14 +114,10 @@ class JacoEnv(gym.Env):
         self._clear_faults()
         # Activate the action notifications
         self._notif_subscription()
-    def in_bounds(self,angles):
-        # todo later, push all angles in bounds
-        return angles
     def step(self,action):
         old_pos=np.degrees(self.get_joint_state()[0][1:]) #FINGER is first one
         arm_diff=action[:6]*self.diffs
         arm_angles=old_pos+arm_diff
-        arm_angles=self.in_bounds(arm_angles)
         
         self.move_arm(arm_angles)
         self.move_fingy((action[6]+1)/2) #fingy will always be between 0,1

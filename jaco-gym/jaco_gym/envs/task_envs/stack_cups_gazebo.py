@@ -5,19 +5,10 @@ class JacoStackCupsGazebo(JacoEnv):
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
-                    bounds=# hard bounds for each joint
-                      (
-                        None, #UNBOUNDED, arm can rotate
-                        (240,120),#this goes about (230, 130) IRL with 0 being straight up, about 130 degrees each side. in simulation, 180 is straight up
-                        (220,140),# IRL (212,147) with  0 straight up, about 140 each side. in simulation, 180 is straight up
-                        None, # UNBOUNDED
-                        (235,115), # (239,120) with 0 straight up, about 115 each side. In simulation, 0 is still straight up
-                        None, # UNBOUNDED
-                      )
                     ):
     
     
-        super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences,bounds)
+        super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
     def step(self,action):
         
         
