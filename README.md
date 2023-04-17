@@ -22,9 +22,24 @@ sudo pip3 install rospkg catkin_pkg
 sudo apt-get install swig ffmpeg
 ```
 
-2. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
+2. Install the controllers and stuff
 
-3. Install [jacorl](https://github.com/pranavraj575/jacorl) as src
+
+```bash
+sudo apt-get install ros-<distro>-gazebo-ros-control
+sudo apt-get install ros-<distro>-ros-controllers*
+sudo apt-get install ros-<distro>-trac-ik-kinematics-plugin
+sudo apt-get install ros-<distro>-effort-controllers 
+sudo apt-get install ros-<distro>-joint-state-controller 
+sudo apt-get install ros-<distro>-joint-trajectory-controller 
+sudo apt-get install ros-<distro>-controller-*
+```
+
+(replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
+
+3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
+
+4. Install [jacorl](https://github.com/pranavraj575/jacorl) as src
 
 ```bash
 cd ~/catkin_ws
@@ -40,7 +55,7 @@ cd ../ros_kortex
 pip3 install -e .
 ```
 
-4. Install dependencies for the ros-kortex package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex).
+5. Install dependencies for the ros-kortex package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex).
 
 ```bash
     sudo apt install python3 python3-pip
@@ -57,7 +72,7 @@ pip3 install -e .
 
 (replace `<branch-name>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
 
-5. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+6. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
 
 ```bash
 cd ~/catkin_ws
@@ -65,7 +80,7 @@ source devel/setup.bash
 export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
 ```
 
-6. Install the ROS packages and build.
+7. Install the ROS packages and build.
 
 ```bash
 cd ~/catkin_ws
