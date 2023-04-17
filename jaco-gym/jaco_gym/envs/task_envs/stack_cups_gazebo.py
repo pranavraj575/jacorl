@@ -1,5 +1,8 @@
+from gazebo_msgs.msg import LinkStates, ModelState, ModelStates
 from jaco_gym.envs.robot_env import JacoEnv
 import numpy as np
+import rospy
+
 class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
@@ -10,6 +13,7 @@ class JacoStackCupsGazebo(JacoEnv):
     
     
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
+
     def step(self,action):
         joint_obs,_,_,_=super().step(action)
         
@@ -29,7 +33,7 @@ class JacoStackCupsGazebo(JacoEnv):
     def get_obs(self):
         print("good")
         pos,vel,eff= self.get_joint_state()
-        return np.array(pos+vel+eff)
+        return np.array(pos+vel+eff+self.object_data)
         
         # should prob use self.get_joint_state as well as other stuff
         
