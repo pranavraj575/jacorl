@@ -14,10 +14,24 @@ class JacoStackCupsGazebo(JacoEnv):
     
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
 
+        # Ranges for randomizing cups and determining goal
+        self.table_y_range=(-0.29,0.29)
+        self.cup_ranges=((-1.4,-0.31),self.table_y_range)
+        self.cup_goal_x = -0.3 # or below
+
+        # Subscribe to object data to obtain cup locations
+        self.object_data={}
+        def _call_model_data(data):
+            self.object_data={}
+            for i in range(len(data.name)):
+                self.object_data[data.name[i]]=data.pose[i]
+        self.sub_topic="/gazebo/model_states"
+        self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
+
     def step(self,action):
         joint_obs,_,_,_=super().step(action)
         
-        REWARD=-1
+        REWARD=self.get_reward()
         DONE=False
         INFO={}
         obs=self.get_obs()
@@ -27,8 +41,11 @@ class JacoStackCupsGazebo(JacoEnv):
     def reset(self):
         joint_obs=super().reset()
         print('here')
+        self.reset_cups()
         obs=self.get_obs()
         return obs
+    
+    #========================= OBSERVATION, REWARD ============================#
         
     def get_obs(self):
         print("good")
@@ -39,5 +56,116 @@ class JacoStackCupsGazebo(JacoEnv):
         
     def get_obs_dim(self):
         print("Here")
-        return 21
+        return 31
+
+    def get_reward(self):
+        self.tip_coord = self.get_tip_coord() # This is not going to work yet
+        self.reward = 100
+        closest_dist = 100
+        obj_data = self.get_object_data()
+        cups = ["cup1","cup2","cup3"]
+        for cup in cups:
+            pos = obj_data[cup].position
+            # print("\n--------------------")
+            # self.robot.cup_in_hand(pos)
+            # print("--------------------\n")
+            # Negative reward for each cup that is off the table
+            if (not self.cup_on_table(pos)):
+                print(cup, " is off the table")
+                self.reward -= 50
+            else:  # Large positive reward for each cup in the goal zone
+                if(self.cup_at_goal_loc(pos)):
+                    print(cup, " is at the goal")
+                    self.reward += 100
+                else: # Reward incentivising cups to be close to goal
+                    dist_to_goal = self.cup_goal_x - pos.x
+                    self.reward -= dist_to_goal * 10
+                    dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z]))
+                    if(dist_to_cup < closest_dist):
+                        closest_dist = dist_to_cup
+        # Reward incentivising robot tip to be close to the nearest cup not 
+        # already in the goal zone, as long as there are sitll cups not at goal
+        if(closest_dist != 100):
+            print(cup, " is dist ", closest_dist)
+            self.reward -= closest_dist * 10
+        print("Reward is ",self.reward)
+    
+    #========================= SAVING CAMERA IMAGE ============================#
+
+    def get_image_numpy(self):
+        return ros_numpy.numpify(self.camera_img)
+    
+    def get_image_PIL(self):
+        img_numpy=self.get_image_numpy()
+        return IMG.fromarray(img_numpy, "RGB")
+
+    def save_image(self,filee):
+        img=self.get_image_PIL()
+        img.save(filee)
+    
+    #========================= CUP HELPER FUNCTIONS ===========================#
+
+    def move_cups(self, positions,orientations=None):
+        cup_names = ["cup1", "cup2", "cup3"]
+        for zs in [[-1]*3,[p[2] for p in positions]]:
+            for i in range(len(cup_names)):
+                model_state_msg = ModelState()
+                pose_msg = Pose()
+                point_msg = Point()
+                
+                rot_msg=Quaternion()#default no rotation
+                
+                if orientations:
+                  (roll,pitch,yaw)=orientations[i]
+                  stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
+                  (rot_msg.x,rot_msg.y,rot_msg.z,rot_msg.w)=stuff
+                
+                (x,y,_)=positions[i]
+                point_msg.x = x
+                point_msg.y = y
+                point_msg.z = zs[i]
+                pose_msg.position = point_msg
+                
+                pose_msg.orientation = rot_msg
+                
+                model_state_msg.model_name = cup_names[i]
+                model_state_msg.pose = pose_msg
+                model_state_msg.reference_frame = "world"
+                self.pub.publish(model_state_msg)
+                rospy.sleep(.01)
+    
+    def reset_cups(self):
+        # generate random new cup positions
+        cup_names = ["cup1", "cup2", "cup3"]
+        cup_positions = []
+        for i in range(len(cup_names)):
+            x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
+            y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
+            while(self.cup_has_collision(x,y)):
+                x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
+                y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
+            cup_positions.append((x,y,.065))
+        self.move_cups(cup_positions)
+    
+    def is_upside_down(self,orientation,tol=.02):
+            # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
+            # will convert to roll, pitch, yaw (rotation on x,y,z axis), ignore z axis and see if cup is exactly upside down
+            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
+            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
+            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
+        
+    def cup_on_table(self,pos):
+        return pos.z >= 0
+    
+    def cup_at_goal_loc(self,pos):
+        return self.cup_on_table(pos) & (pos.x >= self.cup_goal_x)
+    
+    def cup_in_hand(self,pos):
+        self.read_state()
+        print(self.eff)
+
+    def get_tip_coord(self):
+        print("IMPLEMENT THIS")
+        return self.get_joint_state()[0][1:] 
     
