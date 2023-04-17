@@ -140,7 +140,7 @@ class JacoEnv(gym.Env):
     def get_obs(self):
         print("SPECIFY GET OBS IN SUBCLASS")
         pos,vel,eff= self.get_joint_state()
-        return np.array(pos+vel+eff)
+        return np.concatenate((pos,vel,eff))
         
         # should prob use self.get_joint_state as well as other stuff
         
@@ -204,10 +204,16 @@ class JacoEnv(gym.Env):
         #returns tuple with pos, velocity, effort
         #THIS IS IN RADIANS
         # NOTE: the order is finger, then the 6 joints
+        # NOTE: for simulation, this is all of it, but for physical robot, the full namespace is:
+        #   ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6', 'finger_joint', 
+        #      'left_inner_knuckle_joint', 'left_inner_finger_joint', 'right_outer_knuckle_joint', 'right_inner_knuckle_joint', 'right_inner_finger_joint']
+        # no idea why left outer knuckle is not in the state, but use this in subclass maybe
         curr=self.joint_data
-        self.position=curr.position
-        self.velocity=curr.velocity
-        self.effort=curr.effort
+        fields=( 'finger_joint','joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6',)
+        indices=np.array([curr.name.index(f) for f in fields])
+        self.position=np.array(curr.position)[indices]
+        self.velocity=np.array(curr.velocity)[indices]
+        self.effort=np.array(curr.effort)[indices]
         return curr.position,curr.velocity,curr.effort
     
     def move_arm(self,angles):
