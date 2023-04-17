@@ -63,10 +63,7 @@ pip3 install -e .
     conan config set general.revisions_enabled=1
     conan profile new default --detect > /dev/null
     conan profile update settings.compiler.libcxx=libstdc++11 default
-    mkdir -p catkin_workspace/src
-    cd catkin_workspace/src
-    git clone -b <branch-name> https://github.com/Kinovarobotics/ros_kortex.git
-    cd ../
+    cd ~/catkin_ws
     rosdep install --from-paths src --ignore-src -y
 ```
 
