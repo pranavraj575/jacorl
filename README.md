@@ -55,7 +55,12 @@ cd ../ros_kortex
 pip3 install -e .
 ```
 
-5. Install dependencies for the ros-kortex package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex).
+5. Install dependencies for the ros_kortex and ros_kortex_vision package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex) and [here](https://github.com/pranavraj575/jacorl/tree/master/ros_kortex_vision).
+```bash
+    sudo apt install gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base
+    sudo apt-get install ros-<distro>-rgbd-launch
+
+``` 
 
 ```bash
     sudo apt install python3 python3-pip
