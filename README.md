@@ -69,13 +69,6 @@ pip3 install -e .
 
 (replace `<branch-name>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
 
-7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
-
-```bash
-cd ~/catkin_ws
-source devel/setup.bash
-export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
-```
 
 6. Install the ROS packages and build.
 
@@ -87,6 +80,13 @@ catkin_make
 ```
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
 
+7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+
+```bash
+cd ~/catkin_ws
+source devel/setup.bash
+export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
+```
 
 ## Test your environment
 
