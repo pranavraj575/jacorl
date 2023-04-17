@@ -1,7 +1,10 @@
 from gazebo_msgs.msg import LinkStates, ModelState, ModelStates
+from geometry_msgs.msg import Pose, Point, Quaternion
 from jaco_gym.envs.robot_env import JacoEnv
 import numpy as np
 import rospy
+import random
+import math
 
 class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
@@ -13,6 +16,8 @@ class JacoStackCupsGazebo(JacoEnv):
     
     
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
+        self.pub_topic = '/gazebo/set_model_state'
+        self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
 
         # Ranges for randomizing cups and determining goal
         self.table_y_range=(-0.29,0.29)
@@ -20,11 +25,11 @@ class JacoStackCupsGazebo(JacoEnv):
         self.cup_goal_x = -0.3 # or below
 
         # Subscribe to object data to obtain cup locations
-        self.object_data={}
+        self.object_data=[]
         def _call_model_data(data):
-            self.object_data={}
+            self.object_data=[]
             for i in range(len(data.name)):
-                self.object_data[data.name[i]]=data.pose[i]
+                self.object_data.append(data.pose[i])
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
@@ -50,7 +55,7 @@ class JacoStackCupsGazebo(JacoEnv):
     def get_obs(self):
         print("good")
         pos,vel,eff= self.get_joint_state()
-        return np.array(pos+vel+eff+self.object_data)
+        return np.array(pos+vel+eff+tuple(self.object_data))
         
         # should prob use self.get_joint_state as well as other stuff
         
@@ -141,7 +146,7 @@ class JacoStackCupsGazebo(JacoEnv):
         for i in range(len(cup_names)):
             x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
             y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-            while(self.cup_has_collision(x,y)):
+            while(self.cup_has_collision(x,y,cup_positions)):
                 x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
                 y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
             cup_positions.append((x,y,.065))
@@ -155,6 +160,15 @@ class JacoStackCupsGazebo(JacoEnv):
             pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
             return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
         
+    def cup_has_collision(self,x,y,cup_positions,tol=.08):
+        for pos in cup_positions:
+            x2 = pos[0]
+            y2 = pos[1]
+            dist = math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y))
+            if(dist <= tol):
+                return True
+        return False
+
     def cup_on_table(self,pos):
         return pos.z >= 0
     
