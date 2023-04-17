@@ -258,6 +258,7 @@ class JacoEnv(gym.Env):
     def move_fingy(self, value):
         # Initialize the request
         # Close the gripper
+        goal=.8*value # position .8 for the joint position corresponds to a pinched finger
         req = SendGripperCommandRequest()
         finger = Finger()
         finger.finger_identifier = 0
@@ -274,8 +275,27 @@ class JacoEnv(gym.Env):
             rospy.logerr("Failed to call SendGripperCommand")
             return False
         else:
-            #time.sleep(.5)
-            rospy.sleep(0.5)
+            moved=self.wait_fingy_done(goal)
+            print('fingy moved:',moved)
             return True
+    def wait_fingy_done(self,
+                          goal, #goal finger position
+                          ptol=.005, #closeness of the position
+                          sleepy=.01, #sleep command for ros
+                          vtol=lambda time:time # given time, acceptable velocity that makes a 'done' action, not measured at time 0
+                          ):
+        if abs(self.get_joint_state()[0][0]-goal)<=ptol:
+            # already there
+            return False
+        rospy.sleep(sleepy)
+        time=sleepy
+        pos,vel,eff=self.get_joint_state()
+        while abs(pos[0]-goal)>ptol and abs(vel[0])>vtol(time): # if either position is correct or finger stopped moving, we are done
+            time+=sleepy
+            rospy.sleep(sleepy)
+            pos,vel,eff=self.get_joint_state()
+        return True
+        # returns if finger actually moved
+        
     def render(self, mode='human', close=False):
         pass
