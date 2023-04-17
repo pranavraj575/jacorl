@@ -69,7 +69,7 @@ pip3 install -e .
 
 (replace `<branch-name>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
 
-6. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
 
 ```bash
 cd ~/catkin_ws
@@ -77,7 +77,7 @@ source devel/setup.bash
 export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
 ```
 
-7. Install the ROS packages and build.
+6. Install the ROS packages and build.
 
 ```bash
 cd ~/catkin_ws
