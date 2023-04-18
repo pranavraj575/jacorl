@@ -115,7 +115,7 @@ class JacoEnv(gym.Env):
         # Activate the action notifications
         self._notif_subscription()
     def step(self,action):
-        old_pos=np.degrees(self._get_joint_state()[0][:6]) #First 6 elements are the joints one
+        old_pos=np.degrees(self.get_joint_state()[0][:6]) #First 6 elements are the joints one
         arm_diff=action[:6]*self.diffs
         arm_angles=old_pos+arm_diff
         
@@ -139,10 +139,10 @@ class JacoEnv(gym.Env):
         
     def get_obs(self):
         print("SPECIFY GET OBS IN SUBCLASS")
-        pos,vel,eff= self._get_joint_state()
+        pos,vel,eff= self.get_joint_state()
         return np.concatenate((pos,vel,eff))
         
-        # should prob use self._get_joint_state as well as other stuff
+        # should prob use self.get_joint_state as well as other stuff
         
     def get_obs_dim(self):
         print("SPECIFY  obs_dim IN SUBCLASS")
@@ -200,7 +200,7 @@ class JacoEnv(gym.Env):
     def save_image(self,filee):
         img=self.get_image_PIL()
         img.save(filee)
-    def _get_joint_state(self):
+    def get_joint_state(self):
         #returns tuple with pos, velocity, effort
         #THIS IS IN RADIANS
         # NOTE: the order is finger, then the 6 joints
@@ -214,7 +214,7 @@ class JacoEnv(gym.Env):
         self.position=np.array(curr.position)[indices]
         self.velocity=np.array(curr.velocity)[indices]
         self.effort=np.array(curr.effort)[indices]
-        return curr.position,curr.velocity,curr.effort
+        return self.position,self.velocity,self.effort
     
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
@@ -274,16 +274,16 @@ class JacoEnv(gym.Env):
                           sleepy=.01, #sleep command for ros
                           vtol=lambda time:time # given time, acceptable velocity that makes a 'done' action, not measured at time 0
                           ):
-        if abs(self._get_joint_state()[0][6]-goal)<=ptol:
+        if abs(self.get_joint_state()[0][6]-goal)<=ptol:
             # already there
             return False
         rospy.sleep(sleepy)
         time=sleepy
-        pos,vel,eff=self._get_joint_state()
+        pos,vel,eff=self.get_joint_state()
         while abs(pos[6]-goal)>ptol and abs(vel[6])>vtol(time): # if either position is correct or finger stopped moving, we are done
             time+=sleepy
             rospy.sleep(sleepy)
-            pos,vel,eff=self._get_joint_state()
+            pos,vel,eff=self.get_joint_state()
         return True
         # returns if finger actually moved
         
