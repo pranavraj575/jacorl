@@ -15,7 +15,7 @@ rospy.init_node("limp_client", log_level=rospy.INFO)
 
 env = gym.make('BasicJacoEnv-v0')
 env.reset()
-aim='points.npy'
+aim=os.path.join('sample_points','points.npy')
 save_dir=os.path.join('img_data','simulation')
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
