@@ -13,6 +13,12 @@
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
 
+Make sure the following line is in the .bashrc file (with <distro> replaced by ROS distribution, e.g. /melodic/)
+
+'''bash
+source /opt/ros/<distro>/setup.bash
+'''
+
 Complete the following sudo installs:
 
 ```bash
