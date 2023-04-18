@@ -28,7 +28,7 @@ sudo pip3 install rospkg catkin_pkg
 sudo apt-get install swig ffmpeg
 ```
 
-2. Install the controllers and stuff
+2. Install the controllers and stuff (maybe remove the stars?)
 
 
 ```bash
