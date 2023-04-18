@@ -54,10 +54,10 @@ class JacoStackCupsGazebo(JacoEnv):
         
     def get_obs(self):
         print("good")
-        pos,vel,eff= self.get_joint_state()
+        pos,vel,eff= self._get_joint_state()
         return np.array(pos+vel+eff+tuple(self.object_data))
         
-        # should prob use self.get_joint_state as well as other stuff
+        # should prob use self._get_joint_state as well as other stuff
         
     def get_obs_dim(self):
         print("Here")
@@ -181,5 +181,5 @@ class JacoStackCupsGazebo(JacoEnv):
 
     def get_tip_coord(self):
         print("IMPLEMENT THIS")
-        return self.get_joint_state()[0][1:] 
+        return self._get_joint_state()[0][:6] 
     
