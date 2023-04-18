@@ -13,7 +13,7 @@
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
 
-Make sure the following line is in the .bashrc file (with <distro> replaced by ROS distribution, e.g. /melodic/)
+Make sure the following line is in the .bashrc file (with `<distro>` replaced by ROS distribution, e.g. `/melodic/`)
 
 '''bash
 source /opt/ros/<distro>/setup.bash
@@ -75,10 +75,10 @@ pip3 install -e .
     conan profile new default --detect > /dev/null
     conan profile update settings.compiler.libcxx=libstdc++11 default
     cd ~/catkin_ws
-    rosdep install --from-paths src --ignore-src -y
+    rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 ```
 
-(replace `<branch-name>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
+(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
 
 
 6. Install the ROS packages and build.
