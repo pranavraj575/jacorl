@@ -21,8 +21,8 @@ class JacoStackCupsGazebo(JacoEnv):
 
         # Ranges for randomizing cups and determining goal
         self.table_y_range=(-0.29,0.29)
-        self.cup_ranges=((-1.4,-0.31),self.table_y_range)
-        self.cup_goal_x = -0.3 # or below
+        self.cup_ranges=((1.4,0.31),self.table_y_range)
+        self.cup_goal_x = 0.3 # or above
 
         # Subscribe to object data to obtain cup locations
         self.object_data={}
@@ -177,7 +177,7 @@ class JacoStackCupsGazebo(JacoEnv):
         return pos.z >= 0
     
     def cup_at_goal_loc(self,pos):
-        return self.cup_on_table(pos) & (pos.x >= self.cup_goal_x)
+        return self.cup_on_table(pos) & (pos.x <= self.cup_goal_x)
     
     def cup_in_hand(self,pos):
         self.read_state()
