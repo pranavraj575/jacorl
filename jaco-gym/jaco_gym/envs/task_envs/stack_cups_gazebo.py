@@ -65,16 +65,15 @@ class JacoStackCupsGazebo(JacoEnv):
         
     def get_obs_dim(self):
         print("Here")
-        return 31
+        return 30
 
     def get_reward(self):
         self.tip_coord = self.get_tip_coord() # This is not going to work yet
         self.reward = 100
         closest_dist = 100
-        obj_data = self.get_object_data()
         cups = ["cup1","cup2","cup3"]
         for cup in cups:
-            pos = obj_data[cup].position
+            pos = self.object_data[cup].position
             # print("\n--------------------")
             # self.robot.cup_in_hand(pos)
             # print("--------------------\n")
@@ -89,9 +88,10 @@ class JacoStackCupsGazebo(JacoEnv):
                 else: # Reward incentivising cups to be close to goal
                     dist_to_goal = self.cup_goal_x - pos.x
                     self.reward -= dist_to_goal * 10
-                    dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z]))
-                    if(dist_to_cup < closest_dist):
-                        closest_dist = dist_to_cup
+                    # FIX ME!!! 
+                    #dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z])) 
+                    # if(dist_to_cup < closest_dist):
+                    #     closest_dist = dist_to_cup
         # Reward incentivising robot tip to be close to the nearest cup not 
         # already in the goal zone, as long as there are sitll cups not at goal
         if(closest_dist != 100):
