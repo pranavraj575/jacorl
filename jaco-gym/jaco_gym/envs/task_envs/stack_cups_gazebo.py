@@ -99,18 +99,7 @@ class JacoStackCupsGazebo(JacoEnv):
             self.reward -= closest_dist * 10
         print("Reward is ",self.reward)
     
-    #========================= SAVING CAMERA IMAGE ============================#
 
-    def get_image_numpy(self):
-        return ros_numpy.numpify(self.camera_img)
-    
-    def get_image_PIL(self):
-        img_numpy=self.get_image_numpy()
-        return IMG.fromarray(img_numpy, "RGB")
-
-    def save_image(self,filee):
-        img=self.get_image_PIL()
-        img.save(filee)
     
     #========================= CUP HELPER FUNCTIONS ===========================#
 
