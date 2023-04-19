@@ -25,11 +25,11 @@ class JacoStackCupsGazebo(JacoEnv):
         self.cup_goal_x = -0.3 # or below
 
         # Subscribe to object data to obtain cup locations
-        self.object_data=[]
+        self.object_data={}
         def _call_model_data(data):
-            self.object_data=[]
+            self.object_data={}
             for i in range(len(data.name)):
-                self.object_data.append(data.pose[i])
+                self.object_data[data.name[i]] = data.pose[i]
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
@@ -45,8 +45,8 @@ class JacoStackCupsGazebo(JacoEnv):
     
     def reset(self):
         joint_obs=super().reset()
-        print('here')
         self.reset_cups()
+        print('RESETTING CUPS')
         obs=self.get_obs()
         return obs
     
@@ -55,7 +55,11 @@ class JacoStackCupsGazebo(JacoEnv):
     def get_obs(self):
         print("good")
         pos,vel,eff= self.get_joint_state()
-        return np.array(pos+vel+eff+tuple(self.object_data))
+        cup1 = self.object_data["cup1"].position
+        cup2 = self.object_data["cup2"].position
+        cup3 = self.object_data["cup3"].position
+        cup_positions = np.array([cup1.x, cup1.y, cup1.z, cup2.x, cup2.y, cup2.z, cup3.z, cup3.y, cup3.z])
+        return np.concatenate((pos,vel,eff,cup_positions))
         
         # should prob use self.get_joint_state as well as other stuff
         

@@ -1,9 +1,10 @@
 import gym
-import jaco_gym
+#import jaco_gym
 import numpy as np 
 import rospy
 import os
 import time
+from jaco_gym.envs.task_envs.stack_cups_gazebo import JacoStackCupsGazebo
 # from stable_baselines.common.env_checker import check_env
 
 # first launch Jaco in Gazebo with
@@ -13,7 +14,8 @@ import time
 
 rospy.init_node("limp_client", log_level=rospy.INFO)
 
-env = gym.make('BasicJacoEnv-v0')
+env = gym.make('JacoCupsGazebo-v0')
+#JacoStackCupsGazebo()
 env.reset()
 aim=os.path.join('sample_points','points.npy')
 save_dir=os.path.join('img_data','simulation')
