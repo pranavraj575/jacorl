@@ -14,7 +14,7 @@ rospy.init_node("recording_client", log_level=rospy.INFO)
 
 env = gym.make('BasicJacoEnv-v0')
 
-aim=os.path.join('sample_points','army.npy')
+aim=os.path.join('sample_points',input('save file name: ')+'.npy')
 
 arm_degs=[]
 
