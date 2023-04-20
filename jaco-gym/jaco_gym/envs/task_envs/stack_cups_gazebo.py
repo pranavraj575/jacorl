@@ -44,9 +44,9 @@ class JacoStackCupsGazebo(JacoEnv):
         return obs,REWARD,DONE,INFO
     
     def reset(self):
-        joint_obs=super().reset()
         self.reset_cups()
         print('RESETTING CUPS')
+        joint_obs=super().reset()
         obs=self.get_obs()
         return obs
     
