@@ -222,16 +222,121 @@ class JacoEnv(gym.Env):
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
 
+    
+    def rotate_about(self,basis,col,angle):
+        #rotates a basis around the 'col'th vector by 'angle'
+        # always goes counterclockwise, i.e. 
+        #  rotation about x sends y to z, 
+        #  rotation about y sends z to x, 
+        #  rotation about z sends x to y, 
+        new_basis=basis.copy()
+        cols=[0,1,2]
+        cols.remove(col) # these are the ones that change
+        if col==1:
+            cols.reverse() # now rotation is in direction col[0] -> col[1]
+            
+        new_basis[:,cols[0]]=np.cos(angle)*basis[:,cols[0]] + np.sin(angle) * basis[:,cols[1]] # cols[0] is rotated towards cols[1]
+        
+        new_basis[:,cols[1]]=np.cos(angle)*basis[:,cols[1]] - np.sin(angle) * basis[:,cols[0]] # cols[1] is rotated away from cols[0]
+        
+        return new_basis
+    
     def get_cartesian_points(self):
         # returns points of each joint, calculated with trig
-        joint_angles,_,_=self.get_joint_state()
-        base_rotation_joint=np.array([0,0,self.LENGTHS[0]]) # since this is the height of first joint
-        base_rot=joint_angles[0]
-        base_rotation_unit=(np.cos(base_rot),-np.sin(base_rot),0) #NEGATVE since positve rotation sends it into negative y
+        printy=False
         
-        shoulder_joint=base_rotation_joint+np.array([0,0,self.LENGTHS[1]]) #add height of rotate to shoulder
-        shoulder_rotation_unit=0
-        pass
+        joint_angles,_,_=self.get_joint_state()
+        pos=np.array([0.,0.,0.]) # keeps track of position
+        basis=np.identity(3) # keeps track of rotation, column vectors are the basis
+        
+        pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
+        
+        
+
+        base_rot_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+             
+        pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
+        
+        
+        shoulder_joint=pos.copy()
+        basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        pos+=self.LENGTHS[2]*basis[:,2] # along z again
+        
+        
+        elbow_joint=pos.copy()
+        basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        pos+=self.LENGTHS[3]*basis[:,2] # along z
+        
+        
+        rot_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        pos+=self.LENGTHS[4]*basis[:,2]
+        
+        
+
+        wrist_flip_joint=pos.copy()
+        basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        pos+=self.LENGTHS[5]*basis[:,2]
+
+        
+        wrist_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
+        
+        #NOTE: camera is positioned on the -y direction of the final joint
+        # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        pos+=self.LENGTHS[6]*basis[:,2]
+        
+        
+        if printy:
+            print('pos',pos)
+            print('basis')
+            print(basis)
+            print()
+        
+        finger_pos=pos.copy()
+        
+        return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,finger_pos
 
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
