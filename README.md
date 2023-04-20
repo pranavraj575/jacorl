@@ -1,10 +1,14 @@
 # Kinova Jaco2 RL Environment for 2 finger
-
-
+This repository contains a configured Jaco2 RL robot enviornment that can be run both in simulation and on a physical Kinova arm. We provide the base robot environment under ```jaco-gym/jaco_gym/envs/robot_env.py``` 
+enviornment and also provide an example task environment under ```jaco-gym/jaco_gym/envs/task_envs/stack_cups_gazebo.py```.
 ![Jaco Gazebo](/images/jaco_training.gif)
 
-
-
+## Repo Layout
+The repository contains the following sub-folders:
+* <b>jaco-gym</b> - contains robot enviornment, task environment, and sample training scripts
+* <b>ros-kortex</b> - contains launch files and world file
+* <b>rlkit</b> - contains packages for training robot (SAC, Q-learning, etc.), cloned from https://github.com/rail-berkeley/rlkit
+* <b>ros-numpy</b> - contains packages necessary for saving camera images to numpy (camera attached to robot joint), cloned from https://github.com/eric-wieser/ros_numpy
 
 ## Installation
 
