@@ -1,5 +1,5 @@
 # Kinova Jaco2 RL Environment for 2 finger
-This repository contains a configured Jaco2 RL robot enviornment that can be run both in simulation and on a physical Kinova arm. We provide the base robot environment under ```jaco-gym/jaco_gym/envs/robot_env.py``` and also provide an example task environment under ```jaco-gym/jaco_gym/envs/task_envs/stack_cups_gazebo.py``` that facilitates training for a cup-stacking robot (shown below).
+This repository contains a complete Jaco2 environment for Reinforcement Learning that can be run both in simulation and on a physical Kinova arm. We provide the base robot environment under ```jaco-gym/jaco_gym/envs/robot_env.py``` and also provide an example task environment under ```jaco-gym/jaco_gym/envs/task_envs/stack_cups_gazebo.py``` that facilitates training for a cup-stacking robot (shown below). Additonally, this repo contains implementations of numerous RL training methods that can be used for your learning task under the ```rlkit``` submodule.
 
 
 ![Jaco Gazebo](/jaco_world.png)
