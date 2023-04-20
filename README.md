@@ -162,7 +162,12 @@ In terminal 1, cd into the ros-kortex directory and launch the simulated robot e
 roslaunch kortex_gazebo spawn_kortex_robot.launch dof:=6 gripper:=robotiq_2f_85 start_rviz:=false
 ```
 
-In terminal 2, run the python script to test robot actions:
+In terminal 2, run ros_kortex vision to publish camera data:
+```bash
+roslaunch kinova_vision kinova_vision.launch
+```
+
+In terminal 3, run the python script to test robot actions:
 ```bash
 python3 src/jaco-gym/scripts/test_actions.py
 ```
