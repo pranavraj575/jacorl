@@ -11,6 +11,32 @@ The repository contains the following sub-folders:
 * <b>rlkit</b> - contains packages for training robot (SAC, Q-learning, etc.), cloned from https://github.com/rail-berkeley/rlkit
 * <b>ros-numpy</b> - contains packages necessary for saving camera images to numpy (camera attached to robot joint), cloned from https://github.com/eric-wieser/ros_numpy
 
+## Environment Details
+
+<b>Action space:</b> 7d array of values -1 to 1 indicating how much to move each joint:
+
+For joints 0-5 (all non-finger joints)
+- 1 = move the current joint by the max amount in a given "step"
+- 0 = hold current position
+- -1 = move the current joint in the opposite dirrectino by the max amount
+
+For joint 6 (the finger joint)
+
+- 1 = close both fingers
+- 0 = half-closed fingers
+- -1 = open both fingers
+
+| Num           | Observation                        | Min   | Max  |
+| ------------- | ---------------------------------- | ----- | ---- |
+| 0             | joint_1 position                   | -inf  | inf  |
+| ...           | ...                                | -inf  | inf  |
+| 5             | joint_6 position.                  | -inf  | inf  |
+| 6             | joint_finger_1 position            |   0   |  0.8 |
+| 7             | joint_1 velocity (rad/s)           | -inf  | inf  |
+| 8             | joint_finger_3 angle (rad)         | -inf  | inf  |
+
+(N.m)
+
 ## Installation
 
 1. First install [ROS](http://wiki.ros.org/ROS/Installation) if it is not already installed on your machine.
