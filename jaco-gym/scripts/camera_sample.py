@@ -26,13 +26,13 @@ if not os.path.exists(save_dir):
 wait=.3
 points=np.load(aim)
 finger_samples=1
-noise_samples=1
-noise_bounds=(  (0,0), #random movement of each joint chosen from these bounds , put 0,0 for none
-                (0,0),
-                (0,0),
-                (0,0),
-                (0,0),
-                (0,0),) # this is the rotation, can do whatever
+noise_samples=3
+noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds , put 0,0 for none
+                (-.5,.5),
+                (-.5,.5),
+                (-2,2),
+                (-1,1),
+                (-180,180),) # this is the rotation, can do whatever
 
 for p in points:
     for _ in range(noise_samples):

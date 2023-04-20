@@ -140,7 +140,7 @@ class JacoEnv(gym.Env):
     def get_obs(self):
         print("SPECIFY GET OBS IN SUBCLASS")
         pos,vel,eff= self.get_joint_state()
-        return np.concatenate((pos,vel,eff))
+        return np.concatenate((pos%(2*np.pi),vel,eff)) #MOD POSITION by 2pi since it is an angle
         
         # should prob use self.get_joint_state as well as other stuff
         

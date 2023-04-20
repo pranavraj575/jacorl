@@ -55,6 +55,7 @@ class JacoStackCupsGazebo(JacoEnv):
     def get_obs(self):
         print("good")
         pos,vel,eff= self.get_joint_state()
+        pos=pos%(2*np.pi) # MOD POSITION since it is an angle
         cup1 = self.object_data["cup1"].position
         cup2 = self.object_data["cup2"].position
         cup3 = self.object_data["cup3"].position
