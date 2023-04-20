@@ -26,7 +26,6 @@ import ros_numpy
 # to be run either connected through real arm (make sure driver is run)
 # or run with gazebo launch being run
 
-
 class JacoEnv(gym.Env):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
@@ -181,8 +180,6 @@ class JacoEnv(gym.Env):
             return False
         else:
             rospy.loginfo("Successfully activated the Action Notifications!")
-
-        #rospy.sleep(1.0)
         rospy.sleep(0.01)
         return True
 
@@ -204,9 +201,11 @@ class JacoEnv(gym.Env):
     def get_image_PIL(self):
         img_numpy=self.get_image_numpy()
         return IMG.fromarray(img_numpy, "RGB")
+
     def save_image(self,filee):
         img=self.get_image_PIL()
         img.save(filee)
+
     def get_joint_state(self):
         #returns tuple with pos, velocity, effort
         #THIS IS IN RADIANS
@@ -222,6 +221,7 @@ class JacoEnv(gym.Env):
         self.velocity=np.array(curr.velocity)[indices]
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
+
     def get_cartesian_points(self):
         # returns points of each joint, calculated with trig
         joint_angles,_,_=self.get_joint_state()
@@ -232,6 +232,7 @@ class JacoEnv(gym.Env):
         shoulder_joint=base_rotation_joint+np.array([0,0,self.LENGTHS[1]]) #add height of rotate to shoulder
         shoulder_rotation_unit=0
         pass
+
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
@@ -284,6 +285,7 @@ class JacoEnv(gym.Env):
             moved=self.wait_fingy_done(goal)
             print('fingy moved:',moved)
             return True
+
     def wait_fingy_done(self,
                           goal, #goal finger position
                           ptol=.005, #closeness of the position

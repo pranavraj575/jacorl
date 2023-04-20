@@ -35,7 +35,6 @@ class JacoStackCupsGazebo(JacoEnv):
 
     def step(self,action):
         joint_obs,_,_,_=super().step(action)
-        
         REWARD=self.get_reward()
         DONE=False
         INFO={}
@@ -53,6 +52,9 @@ class JacoStackCupsGazebo(JacoEnv):
     #========================= OBSERVATION, REWARD ============================#
         
     def get_obs(self):
+        # Observation is a concatination of our joint positions, joint velocities,
+        # joint efforts, and the x,y,z coordinates of each of our 3 cups
+
         print("good")
         pos,vel,eff= self.get_joint_state()
         pos=pos%(2*np.pi) # MOD POSITION since it is an angle
@@ -61,8 +63,6 @@ class JacoStackCupsGazebo(JacoEnv):
         cup3 = self.object_data["cup3"].position
         cup_positions = np.array([cup1.x, cup1.y, cup1.z, cup2.x, cup2.y, cup2.z, cup3.z, cup3.y, cup3.z])
         return np.concatenate((pos,vel,eff,cup_positions))
-        
-        # should prob use self.get_joint_state as well as other stuff
         
     def get_obs_dim(self):
         print("Here")
@@ -100,38 +100,7 @@ class JacoStackCupsGazebo(JacoEnv):
             self.reward -= closest_dist * 10
         print("Reward is ",self.reward)
     
-
-    
-    #========================= CUP HELPER FUNCTIONS ===========================#
-
-    def move_cups(self, positions,orientations=None):
-        cup_names = ["cup1", "cup2", "cup3"]
-        for zs in [[-1]*3,[p[2] for p in positions]]:
-            for i in range(len(cup_names)):
-                model_state_msg = ModelState()
-                pose_msg = Pose()
-                point_msg = Point()
-                
-                rot_msg=Quaternion()#default no rotation
-                
-                if orientations:
-                  (roll,pitch,yaw)=orientations[i]
-                  stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
-                  (rot_msg.x,rot_msg.y,rot_msg.z,rot_msg.w)=stuff
-                
-                (x,y,_)=positions[i]
-                point_msg.x = x
-                point_msg.y = y
-                point_msg.z = zs[i]
-                pose_msg.position = point_msg
-                
-                pose_msg.orientation = rot_msg
-                
-                model_state_msg.model_name = cup_names[i]
-                model_state_msg.pose = pose_msg
-                model_state_msg.reference_frame = "world"
-                self.pub.publish(model_state_msg)
-                rospy.sleep(.01)
+    #========================= RESETTING ENVIRONMENT ==========================#
     
     def reset_cups(self):
         # generate random new cup positions
@@ -146,14 +115,7 @@ class JacoStackCupsGazebo(JacoEnv):
             cup_positions.append((x,y,.065))
         self.move_cups(cup_positions)
     
-    def is_upside_down(self,orientation,tol=.02):
-            # orientation is a Quaternion object (example: orientation = self.doota['cup1'].orientation)
-            # will convert to roll, pitch, yaw (rotation on x,y,z axis), ignore z axis and see if cup is exactly upside down
-            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
-            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
-            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
-            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
-        
+    # To make sure random cup locations do not intersect
     def cup_has_collision(self,x,y,cup_positions,tol=.08):
         for pos in cup_positions:
             x2 = pos[0]
@@ -162,16 +124,55 @@ class JacoStackCupsGazebo(JacoEnv):
             if(dist <= tol):
                 return True
         return False
+    
+    def move_cups(self, positions,orientations=None):
+        # move cups to the randomized positions
+        cup_names = ["cup1", "cup2", "cup3"]
+        for zs in [[-1]*3,[p[2] for p in positions]]:
+            for i in range(len(cup_names)):
+                model_state_msg = ModelState()
+                pose_msg = Pose()
+                point_msg = Point()
+                rot_msg=Quaternion()#default no rotation
+                if orientations:
+                  (roll,pitch,yaw)=orientations[i]
+                  stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
+                  (rot_msg.x,rot_msg.y,rot_msg.z,rot_msg.w)=stuff
+                (x,y,_)=positions[i]
+                point_msg.x = x
+                point_msg.y = y
+                point_msg.z = zs[i]
+                pose_msg.position = point_msg
+                pose_msg.orientation = rot_msg
+                model_state_msg.model_name = cup_names[i]
+                model_state_msg.pose = pose_msg
+                model_state_msg.reference_frame = "world"
+                self.pub.publish(model_state_msg)
+                rospy.sleep(.01)
+    
+    #========================= CUP INFORMATION ==========================#
+    
+    def is_upside_down(self,orientation,tol=.02):
+            # Orientation is a Quaternion object (example: orientation = 
+            # self.doota['cup1'].orientation), will convert to roll, pitch, 
+            # yaw (rotation on x,y,z axis), ignore z axis and see if cup is 
+            # exactly upside down
+            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
+            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
+            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
 
     def cup_on_table(self,pos):
         return pos.z >= 0
     
     def cup_at_goal_loc(self,pos):
-        return self.cup_on_table(pos) & (pos.x <= self.cup_goal_x)
+        return self.cup_on_table(pos) and (pos.x <= self.cup_goal_x)
     
-    def cup_in_hand(self,pos):
-        self.read_state()
-        print(self.eff)
+    def robot_holding_cup(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
+        joint_positions,_,joint_efforts = self.get_joint_state()
+        finger_pos = joint_positions[6]
+        finger_eff = joint_efforts[6]
+        return finger_pos >= min_grap_pos and finger_eff >= min_grab_eff
 
     def get_tip_coord(self):
         print("IMPLEMENT THIS")
