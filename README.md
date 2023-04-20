@@ -1,29 +1,30 @@
 # Kinova Jaco2 RL Environment for 2 finger
-This repository contains a configured Jaco2 RL robot enviornment that can be run both in simulation and on a physical Kinova arm. We provide the base robot environment under ```jaco-gym/jaco_gym/envs/robot_env.py``` 
-enviornment and also provide an example task environment under ```jaco-gym/jaco_gym/envs/task_envs/stack_cups_gazebo.py```.
-![Jaco Gazebo](/images/jaco_training.gif)
+This repository contains a configured Jaco2 RL robot enviornment that can be run both in simulation and on a physical Kinova arm. We provide the base robot environment under ```jaco-gym/jaco_gym/envs/robot_env.py``` and also provide an example task environment under ```jaco-gym/jaco_gym/envs/task_envs/stack_cups_gazebo.py``` that facilitates training for a cup-stacking robot (shown below).
+
+
+![Jaco Gazebo](/jaco_world.png)
 
 ## Repo Layout
 The repository contains the following sub-folders:
 * <b>jaco-gym</b> - contains robot enviornment, task environment, and sample training scripts
-* <b>ros-kortex</b> - contains launch files and world file
+* <b>ros-kortex</b> - contains launch files and world file (jaco.world is our world file for our cup training example that contains a table and 3 cups that spawn randomly upon reset)
 * <b>rlkit</b> - contains packages for training robot (SAC, Q-learning, etc.), cloned from https://github.com/rail-berkeley/rlkit
 * <b>ros-numpy</b> - contains packages necessary for saving camera images to numpy (camera attached to robot joint), cloned from https://github.com/eric-wieser/ros_numpy
 
 ## Installation
 
-1. Install [ROS](http://wiki.ros.org/ROS/Installation).
+1. First install [ROS](http://wiki.ros.org/ROS/Installation) if it is not already installed on your machine.
 
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
 
 Make sure the following line is in the .bashrc file (with `<distro>` replaced by ROS distribution, e.g. `/melodic/`)
 
-'''bash
+```bash
 source /opt/ros/<distro>/setup.bash
-'''
+```
 
-Complete the following sudo installs:
+Then complete the following sudo installs:
 
 ```bash
 sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
@@ -32,7 +33,7 @@ sudo pip3 install rospkg catkin_pkg
 sudo apt-get install swig ffmpeg
 ```
 
-2. Install the controllers and stuff (maybe remove the stars?)
+2. Install the robot controllers (maybe remove the stars?)
 
 
 ```bash
@@ -44,12 +45,11 @@ sudo apt-get install ros-<distro>-joint-state-controller
 sudo apt-get install ros-<distro>-joint-trajectory-controller 
 sudo apt-get install ros-<distro>-controller-*
 ```
-
 (replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
 
-3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
+3. Install and configure your Catkin workspace by following this [link](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
 
-4. Install [jacorl](https://github.com/pranavraj575/jacorl) as src
+4. Install [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src. Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
 
 ```bash
 cd ~/catkin_ws
@@ -102,42 +102,53 @@ cd ~/catkin_ws
 source devel/setup.bash
 export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
 ```
-
+At the end of installation and set-up, your file structure should look like this:
+```
+- catkin_ws
+    - build
+    - devel
+    - src
+        - jaco-gym
+        - rlkit
+        - ros_kortex
+        - ros_kortex_vision
+        - ros_numpy
+        - ...
+```
 ## Test your environment
 
 ### For the physical arm
 
-In terminal 1:
+In terminal 1, launch the robot connection:
 ```bash
 roslaunch kortex_driver kortex_driver.launch dof:=6 gripper:=robotiq_2f_85 ip_address:=192.168.1.10
 ```
 
-In terminal 2:
+In terminal 2, run the python script to test robot actions:
 ```bash
 python3 src/jaco-gym/scripts/test_actions.py
 ```
 
 ### For the arm in Gazebo (tested on ROS Melodic and Kinetic)
 
-In terminal 1:
+In terminal 1, cd into the ros-kortex directory and launch the simulated robot environment:
 ```bash
 roslaunch kortex_gazebo spawn_kortex_robot.launch dof:=6 gripper:=robotiq_2f_85 start_rviz:=false
 ```
 
-In terminal 2:
+In terminal 2, run the python script to test robot actions:
 ```bash
 python3 src/jaco-gym/scripts/test_actions.py
 ```
 
-
 ## Train the agent
 
-In terminal 1:
+In terminal 1, cd into the ros-kortex directory and launch the simulated robot environment:
 ```bash
 roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s300 
 ```
 
-In terminal 2:
+In terminal 2, run the python robot training script:
 ```bash
 python3 scripts/1_train_ppo2.py
 ```
