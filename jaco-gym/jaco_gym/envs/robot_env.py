@@ -42,6 +42,13 @@ class JacoEnv(gym.Env):
         
         self.diffs=differences
         
+        self.LENGTHS=(1, # base to rotation joint
+                      1, # rotation joint to shoulder
+                      1, # shoulder to elbow 
+                      1, # elbow to rotation joint
+                      1, # rotation joint to wrist tilt joint
+                      1, # wrist tilt to wrist rotation
+                      1,) # wrist rotation joint to fingertip
         
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
@@ -215,7 +222,16 @@ class JacoEnv(gym.Env):
         self.velocity=np.array(curr.velocity)[indices]
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
-    
+    def get_cartesian_points(self):
+        # returns points of each joint, calculated with trig
+        joint_angles,_,_=self.get_joint_state()
+        base_rotation_joint=np.array([0,0,self.LENGTHS[0]]) # since this is the height of first joint
+        base_rot=joint_angles[0]
+        base_rotation_unit=(np.cos(base_rot),-np.sin(base_rot),0) #NEGATVE since positve rotation sends it into negative y
+        
+        shoulder_joint=base_rotation_joint+np.array([0,0,self.LENGTHS[1]]) #add height of rotate to shoulder
+        shoulder_rotation_unit=0
+        pass
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
