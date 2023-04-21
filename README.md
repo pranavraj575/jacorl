@@ -25,7 +25,7 @@ The action space is a 7d array of values between -1 and 1, where indices 0-5 rep
 - Built-in <b>camera</b> mounted on the robot joint that stores Image objects through ```self.camera_data```, and functions to <b>save the current camera image</b> through the ```save_image``` function that is supported by the included ros_numpy sub-directory
 - Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
 
-![Jaco Gazebo](/features.jpg)
+![Jaco Gazebo](/features.png)
 
 ## Installation
 
