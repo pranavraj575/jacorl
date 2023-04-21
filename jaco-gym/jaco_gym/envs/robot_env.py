@@ -182,66 +182,30 @@ class JacoEnv(gym.Env):
     
     def get_cartesian_points(self):
         # returns points of each joint, calculated with trig
-        printy=False
         joint_angles,_,_=self.get_joint_state()
         pos=np.array([0.,0.,0.]) # keeps track of position
         basis=np.identity(3) # keeps track of rotation, column vectors are the basis
         pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
         base_rot_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
         shoulder_joint=pos.copy()
         basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[2]*basis[:,2] # along z again
         elbow_joint=pos.copy()
         basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[3]*basis[:,2] # along z
         rot_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[4]*basis[:,2]
         wrist_flip_joint=pos.copy()
         basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[5]*basis[:,2]
         wrist_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
         #NOTE: camera is positioned on the -y direction of the final joint
         # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         pos+=self.LENGTHS[6]*basis[:,2]
-        if printy:
-            print('pos',pos)
-            print('basis')
-            print(basis)
-            print()
         gripper_base=pos.copy()
         gripper_positions=[]
         for leng in self.LENGTHS[7:]:
@@ -325,6 +289,18 @@ class JacoEnv(gym.Env):
             
         # Calculate the distance between the closest points
         return math.sqrt((x - xs)**2 + (y - ys)**2 + (z - zs)**2)
+    
+    def robot_intersects_self(self,width = 0.05):
+        j1, j2, j3, j4, j5, j6, j7, _ = self.get_cartesian_coordinates()
+        line_segments = [((0,0,0),j1),(j1,j2),(j2,j3),(j3,j4),(j4,j5),(j5,j6),(j6,j7)]
+
+        # All possible pairs of coordinates that need to be checked for intersect
+        for seg1, seg2 in list(combinations(line_segments, 2)):
+            p1,p2 = seg1
+            p3,p4 = seg2
+            if(min_dist(p1,p2,p3,p4) <= width):
+                return true
+        return false
 
     #================================ MOVEMENT ================================#
     
