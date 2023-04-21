@@ -44,8 +44,11 @@ class JacoEnv(gym.Env):
                       .2085, # elbow to rotation joint
                       .1059, # rotation joint to wrist tilt joint
                       .1059, # wrist tilt to wrist rotation
-                      .615,) # wrist rotation joint to fingertip
-        
+                      .0615, # wrist rotation joint to base of gripper
+                      .088, # base of gripper to 'palm' of hand
+                      .0613, # 'palm' of hand to open fingertip
+                      .0135, # open fingertip length to closed fingertip length
+                      )
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
         high = np.inf * np.ones([self.obs_dim])
@@ -239,8 +242,12 @@ class JacoEnv(gym.Env):
             print('basis')
             print(basis)
             print()
-        finger_pos=pos.copy()
-        return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,finger_pos
+        gripper_base=pos.copy()
+        gripper_positions=[]
+        for leng in self.LENGTHS[7:]:
+            pos+=leng*basis[:,2]
+            gripper_positions.append(pos.copy())
+        return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
 
     #========================= SAVING CAMERA IMAGES ===========================#
             
