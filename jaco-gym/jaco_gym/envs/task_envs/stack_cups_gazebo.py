@@ -9,12 +9,11 @@ import math
 class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
-                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
+                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
                     ):
-    
-    
+                    
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
         self.pub_topic = '/gazebo/set_model_state'
         self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)

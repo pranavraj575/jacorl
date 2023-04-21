@@ -16,51 +16,48 @@ import rospy
 import time
 import numpy as np
 from PIL import Image as IMG
-
 from kortex_driver.srv import Base_ClearFaults, ReadAction, ExecuteAction, SetCartesianReferenceFrame,SendGripperCommand,OnNotificationActionTopic
 from kortex_driver.srv import GetProductConfiguration, ValidateWaypointList,OnNotificationActionTopicRequest,ReadActionRequest,ExecuteActionRequest,SendGripperCommandRequest
 from kortex_driver.msg import ActionNotification, ActionEvent,Finger,GripperMode
-
 from sensor_msgs.msg import JointState, Image
 import ros_numpy
-# to be run either connected through real arm (make sure driver is run)
-# or run with gazebo launch being run
 
 class JacoEnv(gym.Env):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
-                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw and /CAM_SPACE/depth/image_raw
+                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
-                    differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
+                    differences=(15,15,15,15,15,15), # maximum angular movement allowed at each joint per action
                     ):
     
         self.action_dim=7
         self.obs_dim=self.get_obs_dim()
-    
         self.init_pos=init_pos
-        
         self.diffs=differences
         
-        self.LENGTHS=(1, # base to rotation joint
-                      1, # rotation joint to shoulder
-                      1, # shoulder to elbow 
-                      1, # elbow to rotation joint
-                      1, # rotation joint to wrist tilt joint
-                      1, # wrist tilt to wrist rotation
-                      1,) # wrist rotation joint to fingertip
+        # Dimensions of each of the joints obtained from the Kinova Gen3 user
+        # guide for 6 dof https://www.kinovarobotics.com/uploads/User-Guide-Gen3-R07.pdf
+        # used for calculating cartesian positions of each joint
+        self.LENGTHS=(.1564, # base to rotation joint
+                      .1284, # rotation joint to shoulder
+                      .410, # shoulder to elbow 
+                      .2085, # elbow to rotation joint
+                      .1059, # rotation joint to wrist tilt joint
+                      .1059, # wrist tilt to wrist rotation
+                      .615,) # wrist rotation joint to fingertip
         
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
-        
         high = np.inf * np.ones([self.obs_dim])
         self.observation_space = gym.spaces.Box(-high, high)
-    
         joint_namespace='/'+ROBOT_NAME+'/joint_states'
         
+        # Subscribe to joint data 
         def joint_callback(data):
             self.joint_data=data
         self.joint_sub=rospy.Subscriber(joint_namespace,JointState,joint_callback)
         
+        # Subscribe to camera data
         def _camera_img_callback(data):
             self.camera_img = data
         self.image_sub=rospy.Subscriber("/"+CAM_SPACE+"/color/image_raw",Image,_camera_img_callback)
@@ -113,22 +110,17 @@ class JacoEnv(gym.Env):
         rospy.wait_for_service(validate_waypoint_list_full_name)
         self.validate_waypoint_list = rospy.ServiceProxy(validate_waypoint_list_full_name, ValidateWaypointList)
         
-        
-        
-        # is this necessary?
-        # clear faults
         self._clear_faults()
-        # Activate the action notifications
-        self._notif_subscription()
+        self._notif_subscription() # Activate the action notifications
+
+    #============================ BASIC FUNCTIONS =============================#
+
     def step(self,action):
-        old_pos=np.degrees(self.get_joint_state()[0][:6]) #First 6 elements are the joints one
+        old_pos=np.degrees(self.get_joint_state()[0][:6]) #First 6 elements are the joints
         arm_diff=action[:6]*self.diffs
         arm_angles=old_pos+arm_diff
-        
         self.move_arm(arm_angles)
-        self.move_fingy((action[6]+1)/2) #fingy will always be between 0,1
-        
-        
+        self.move_fingy((action[6]+1)/2) #finger will always be between 0,1
         REWARD=-1
         DONE=False
         INFO={}
@@ -148,72 +140,19 @@ class JacoEnv(gym.Env):
         pos,vel,eff= self.get_joint_state()
         return np.concatenate((pos%(2*np.pi),vel,eff)) #MOD POSITION by 2pi since it is an angle
         
-        # should prob use self.get_joint_state as well as other stuff
-        
     def get_obs_dim(self):
-        print("SPECIFY  obs_dim IN SUBCLASS")
+        print("SPECIFY obs_dim IN SUBCLASS")
         return 21
-    
-    def cb_action_topic(self, notif):
-        self.last_action_notif_type = notif.action_event
-    
 
-    def wait_for_action_end_or_abort(self):
-        while not rospy.is_shutdown():
-            if (self.last_action_notif_type == ActionEvent.ACTION_END):
-                rospy.loginfo("Received ACTION_END notification")
-                return True
-            elif (self.last_action_notif_type == ActionEvent.ACTION_ABORT):
-                rospy.loginfo("Received ACTION_ABORT notification")
-                return False
-            else:
-                time.sleep(0.01)
-
-    def _notif_subscription(self):
-        # Activate the publishing of the ActionNotification
-        req = OnNotificationActionTopicRequest()
-        rospy.loginfo("Activating the action notifications...")
-        try:
-            self.activate_publishing_of_action_notification(req)
-        except rospy.ServiceException:
-            rospy.logerr("Failed to call OnNotificationActionTopic")
-            return False
-        else:
-            rospy.loginfo("Successfully activated the Action Notifications!")
-        rospy.sleep(0.01)
-        return True
-
-    def _clear_faults(self):
-        try:
-            self.clear_faults()
-        except rospy.ServiceException:
-            rospy.logerr("Failed to call ClearFaults")
-            return False
-        else:
-            rospy.loginfo("Cleared the faults successfully")
-            #rospy.sleep(2.5)
-            rospy.sleep(0.01)
-            return True
-            
-    def get_image_numpy(self):
-        return ros_numpy.numpify(self.camera_img)
-    
-    def get_image_PIL(self):
-        img_numpy=self.get_image_numpy()
-        return IMG.fromarray(img_numpy, "RGB")
-
-    def save_image(self,filee):
-        img=self.get_image_PIL()
-        img.save(filee)
+    #======================== OTHER HELPFUL FUNCTIONS =========================#
 
     def get_joint_state(self):
-        #returns tuple with pos, velocity, effort
-        #THIS IS IN RADIANS
-        # NOTE: the order is finger, then the 6 joints
+        # returns tuple with pos, velocity, effort
+        # THIS IS IN RADIANS
+        # NOTE: the order 6 joints, then finger
         # NOTE: for simulation, this is all of it, but for physical robot, the full namespace is:
         #   ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6', 'finger_joint', 
         #      'left_inner_knuckle_joint', 'left_inner_finger_joint', 'right_outer_knuckle_joint', 'right_inner_knuckle_joint', 'right_inner_finger_joint']
-        # no idea why left outer knuckle is not in the state, but use this in subclass maybe
         curr=self.joint_data
         fields=( 'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6','finger_joint')
         indices=np.array([curr.name.index(f) for f in fields])
@@ -222,7 +161,6 @@ class JacoEnv(gym.Env):
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
 
-    
     def rotate_about(self,basis,col,angle):
         #rotates a basis around the 'col'th vector by 'angle'
         # always goes counterclockwise, i.e. 
@@ -236,23 +174,16 @@ class JacoEnv(gym.Env):
             cols.reverse() # now rotation is in direction col[0] -> col[1]
             
         new_basis[:,cols[0]]=np.cos(angle)*basis[:,cols[0]] + np.sin(angle) * basis[:,cols[1]] # cols[0] is rotated towards cols[1]
-        
         new_basis[:,cols[1]]=np.cos(angle)*basis[:,cols[1]] - np.sin(angle) * basis[:,cols[0]] # cols[1] is rotated away from cols[0]
-        
         return new_basis
     
     def get_cartesian_points(self):
         # returns points of each joint, calculated with trig
         printy=False
-        
         joint_angles,_,_=self.get_joint_state()
         pos=np.array([0.,0.,0.]) # keeps track of position
         basis=np.identity(3) # keeps track of rotation, column vectors are the basis
-        
         pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
-        
-        
-
         base_rot_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
         if printy:
@@ -260,84 +191,71 @@ class JacoEnv(gym.Env):
             print('basis')
             print(basis)
             print()
-             
         pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
-        
-        
         shoulder_joint=pos.copy()
         basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         pos+=self.LENGTHS[2]*basis[:,2] # along z again
-        
-        
         elbow_joint=pos.copy()
         basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         pos+=self.LENGTHS[3]*basis[:,2] # along z
-        
-        
         rot_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         pos+=self.LENGTHS[4]*basis[:,2]
-        
-        
-
         wrist_flip_joint=pos.copy()
         basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         pos+=self.LENGTHS[5]*basis[:,2]
-
-        
         wrist_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
-        
         #NOTE: camera is positioned on the -y direction of the final joint
         # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         pos+=self.LENGTHS[6]*basis[:,2]
-        
-        
         if printy:
             print('pos',pos)
             print('basis')
             print(basis)
             print()
-        
         finger_pos=pos.copy()
-        
         return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,finger_pos
 
+    #========================= SAVING CAMERA IMAGES ===========================#
+            
+    def get_image_numpy(self):
+        return ros_numpy.numpify(self.camera_img)
+    
+    def get_image_PIL(self):
+        img_numpy=self.get_image_numpy()
+        return IMG.fromarray(img_numpy, "RGB")
+
+    def save_image(self,filee):
+        img=self.get_image_PIL()
+        img.save(filee)
+    
+    #================================ MOVEMENT ================================#
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
@@ -377,7 +295,6 @@ class JacoEnv(gym.Env):
         finger.value = value
         req.input.gripper.finger.append(finger)
         req.input.mode = GripperMode.GRIPPER_POSITION
-
         rospy.loginfo("Sending the gripper command...")
 
         # Call the service 
@@ -407,8 +324,47 @@ class JacoEnv(gym.Env):
             time+=sleepy
             rospy.sleep(sleepy)
             pos,vel,eff=self.get_joint_state()
+        return True # returns if finger actually moved
+    
+    def cb_action_topic(self, notif):
+        self.last_action_notif_type = notif.action_event
+
+    def wait_for_action_end_or_abort(self):
+        while not rospy.is_shutdown():
+            if (self.last_action_notif_type == ActionEvent.ACTION_END):
+                rospy.loginfo("Received ACTION_END notification")
+                return True
+            elif (self.last_action_notif_type == ActionEvent.ACTION_ABORT):
+                rospy.loginfo("Received ACTION_ABORT notification")
+                return False
+            else:
+                time.sleep(0.01)
+
+    def _notif_subscription(self):
+        # Activate the publishing of the ActionNotification
+        req = OnNotificationActionTopicRequest()
+        rospy.loginfo("Activating the action notifications...")
+        try:
+            self.activate_publishing_of_action_notification(req)
+        except rospy.ServiceException:
+            rospy.logerr("Failed to call OnNotificationActionTopic")
+            return False
+        else:
+            rospy.loginfo("Successfully activated the Action Notifications!")
+        rospy.sleep(0.01)
         return True
-        # returns if finger actually moved
+
+    def _clear_faults(self):
+        try:
+            self.clear_faults()
+        except rospy.ServiceException:
+            rospy.logerr("Failed to call ClearFaults")
+            return False
+        else:
+            rospy.loginfo("Cleared the faults successfully")
+            #rospy.sleep(2.5)
+            rospy.sleep(0.01)
+            return True
         
     def render(self, mode='human', close=False):
         pass
