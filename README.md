@@ -27,6 +27,8 @@ The action space is a 7d array of values between -1 and 1, where indices 0-5 rep
 
 ![Jaco Gazebo](/features.png)
 
+Camera capture functions, and functions to get joint positions and detect intersections that work both in simulation and on the physical bot
+
 ## Installation
 
 1. First install [ROS](http://wiki.ros.org/ROS/Installation) if it is not already installed on your machine.
