@@ -175,6 +175,6 @@ class JacoStackCupsGazebo(JacoEnv):
 
     def get_tip_coord(self):
         _,_,_,_,_,_,_,gripper_positions = self.get_cartesian_points()
-        
+        return
         return self.get_joint_state()[0][:6] 
     

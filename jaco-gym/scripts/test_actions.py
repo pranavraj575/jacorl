@@ -57,6 +57,7 @@ for episode in range(3):
         #action = [0,0,0,0,0,0,-1+2*t/4] # -1 to 1
         print("last joint angle is %f\n",-1+2*t/4)
         obs, reward, done, info = env.step(action)
+        print(env.robot_intersects_self())
 
         # print("timestep:", t)
         # print("action: ", action)

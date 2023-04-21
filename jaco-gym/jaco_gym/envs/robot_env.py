@@ -15,6 +15,7 @@ import sys
 import rospy
 import time
 import numpy as np
+import math
 from PIL import Image as IMG
 from kortex_driver.srv import Base_ClearFaults, ReadAction, ExecuteAction, SetCartesianReferenceFrame,SendGripperCommand,OnNotificationActionTopic
 from kortex_driver.srv import GetProductConfiguration, ValidateWaypointList,OnNotificationActionTopicRequest,ReadActionRequest,ExecuteActionRequest,SendGripperCommandRequest
@@ -224,7 +225,7 @@ class JacoEnv(gym.Env):
     # simply by having access to the robot's joint angles
 
     # min test between line segment (p1, p2) and line segment (p3, p4)
-    def min_dist(p1,p2,p3,p4):
+    def min_dist(self,p1,p2,p3,p4):
         x1, y1, z1 = p1
         x2, y2, z2 = p2
         x3, y3, z3 = p3
@@ -297,7 +298,7 @@ class JacoEnv(gym.Env):
                 for section in finger:
                     p3 = j7
                     p4 = section
-                    if(min_dist(p1,p2,p3,p4) <= tol):
+                    if(self.min_dist(p1,p2,p3,p4) <= tol):
                         return True
             # Else check if the (p1,p2) segmant intersects any other non-adjacent
             # section of the arm
@@ -305,9 +306,7 @@ class JacoEnv(gym.Env):
                 p3 = points[j]
                 p4 = points[j+1]
                 if (abs(j-i) > 1):
-                    if(min_dist(p1,p2,p3,p4) <= tol):
-                        print("segments",i,j)
-                        print(min_dist(p1,p2,p3,p4))
+                    if(self.min_dist(p1,p2,p3,p4) <= tol):
                         return True
         return False
 
