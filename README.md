@@ -18,7 +18,7 @@ The repository contains the following sub-folders:
 The action space is a 7d array of values between -1 and 1, where indices 0-5 represent movement displacements of each robot joint, and index 6 represents the new position of the fingers (1 = fingers closed, -1 = fingers opened). To prevent large jumps in robot position, we define a maximum angular movement each of the 6 non-finger joints can travel in a given step (self.differences), and a 1 in a given joint position represents moving that joint the maximum angular step-distance, while a -1 in that joint posion means rotating the joint backwards the maxmimum amount for a given step. 
 
 - ex. [0,0,0,0,0,0,1] = keeping the robot in the same position, but pinching the fingers
-- ex. [1,1,1,1,1,1,0] = stepping each joint forward by the maximum angular movement (which is really just a relatively small movement in each joint to prevent large jumps), and unpinching the fingers
+- ex. [1,1,1,1,1,1,-1] = stepping each joint forward by the maximum angular movement (which is really just a relatively small movement in each joint to prevent large jumps), and unpinching the fingers
 
 <b>Useful Features</b>
 
