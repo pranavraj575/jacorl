@@ -116,7 +116,7 @@ class JacoEnv(gym.Env):
         self._clear_faults()
         self._notif_subscription() # Activate the action notifications
 
-    #============================ BASIC FUNCTIONS =============================#
+    #========================== REQUIRED FUNCTIONS ============================#
 
     def step(self,action):
         old_pos=np.degrees(self.get_joint_state()[0][:6]) #First 6 elements are the joints
@@ -124,38 +124,39 @@ class JacoEnv(gym.Env):
         arm_angles=old_pos+arm_diff
         self.move_arm(arm_angles)
         self.move_fingy((action[6]+1)/2) #finger will always be between 0,1
-        REWARD=-1
+        REWARD=-1 # IMPLEMENT THESE METHODS IN SUBCLASS
         DONE=False
         INFO={}
         obs=self.get_obs()
-        print("IMPLEMENT THESE IN SUBCLASS")
         return obs,REWARD,DONE,INFO
     
-    def reset(self):
+    def reset(self): # OVERWRITE THIS METHOD IN SUBCLASS
         self.move_fingy(0)
         self.move_arm(self.init_pos)
         obs=self.get_obs()
-        print("NEEDS TO RESET CUPS or whatever IN LOWER METHOD")
         return obs
         
-    def get_obs(self):
-        print("SPECIFY GET OBS IN SUBCLASS")
+    def get_obs(self): # OVERWRITE THIS METHOD IN SUBCLASS
         pos,vel,eff= self.get_joint_state()
-        return np.concatenate((pos%(2*np.pi),vel,eff)) #MOD POSITION by 2pi since it is an angle
+        return np.concatenate((pos%(2*np.pi),vel,eff)) #Mod position by 2pi since it is an angle
         
-    def get_obs_dim(self):
-        print("SPECIFY obs_dim IN SUBCLASS")
+    def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
         return 21
 
-    #======================== OTHER HELPFUL FUNCTIONS =========================#
+    #========================== GETTING ROBOT INFO ============================#
+
+    # Returns information about robot state that can be attained in both
+    # the simulation and real environment, including the joint positions (radians),
+    # joint velocity, joint effort, and also the (x,y,z) cartesian coordinates
+    # of each joint calculated using trig
 
     def get_joint_state(self):
-        # returns tuple with pos, velocity, effort
-        # THIS IS IN RADIANS
-        # NOTE: the order 6 joints, then finger
-        # NOTE: for simulation, this is all of it, but for physical robot, the full namespace is:
-        #   ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6', 'finger_joint', 
-        #      'left_inner_knuckle_joint', 'left_inner_finger_joint', 'right_outer_knuckle_joint', 'right_inner_knuckle_joint', 'right_inner_finger_joint']
+        # Returns a tuple with pos (in radians), velocity, effort for each joint
+        # NOTE: For simulation, the return order is just the 6 joints follwed by 
+        # the finger, but for the physical robot the namesapce is
+        # ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6', 'finger_joint',
+        #  'left_inner_knuckle_joint', 'left_inner_finger_joint', 'right_outer_knuckle_joint', 
+        #  'right_inner_knuckle_joint', 'right_inner_finger_joint']
         curr=self.joint_data
         fields=( 'joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6','finger_joint')
         indices=np.array([curr.name.index(f) for f in fields])
@@ -163,22 +164,6 @@ class JacoEnv(gym.Env):
         self.velocity=np.array(curr.velocity)[indices]
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
-
-    def rotate_about(self,basis,col,angle):
-        #rotates a basis around the 'col'th vector by 'angle'
-        # always goes counterclockwise, i.e. 
-        #  rotation about x sends y to z, 
-        #  rotation about y sends z to x, 
-        #  rotation about z sends x to y, 
-        new_basis=basis.copy()
-        cols=[0,1,2]
-        cols.remove(col) # these are the ones that change
-        if col==1:
-            cols.reverse() # now rotation is in direction col[0] -> col[1]
-            
-        new_basis[:,cols[0]]=np.cos(angle)*basis[:,cols[0]] + np.sin(angle) * basis[:,cols[1]] # cols[0] is rotated towards cols[1]
-        new_basis[:,cols[1]]=np.cos(angle)*basis[:,cols[1]] - np.sin(angle) * basis[:,cols[0]] # cols[1] is rotated away from cols[0]
-        return new_basis
     
     def get_cartesian_points(self):
         # returns points of each joint, calculated with trig
@@ -216,6 +201,9 @@ class JacoEnv(gym.Env):
         # Gripper positions has palm of hand, and other data
 
     #========================= SAVING CAMERA IMAGES ===========================#
+
+    # Saves the camera image as a numpy array or to a png to be viewed,
+    # works on the simulated camera and real camera attached to the Kinova Arm
             
     def get_image_numpy(self):
         return ros_numpy.numpify(self.camera_img)
@@ -228,7 +216,12 @@ class JacoEnv(gym.Env):
         img=self.get_image_PIL()
         img.save(filee)
     
-    #============================== INTERSECTION ==============================#
+    #============================= INTERSECTION ===============================#
+
+    # Tests to see if a robot "intersects" itself or if its joints get too close
+    # to eachother, doesn't use any ROS methods (just pure trig and vector
+    # operations), so this can be called both in the simulation and real robot
+    # simply by having access to the robot's joint angles
 
     # min test between line segment (p1, p2) and line segment (p3, p4)
     def min_dist(p1,p2,p3,p4):
@@ -236,7 +229,7 @@ class JacoEnv(gym.Env):
         x2, y2, z2 = p2
         x3, y3, z3 = p3
         x4, y4, z4 = p4
-
+        
         # Calculate the direction vectors for each line segment
         u = (x2 - x1, y2 - y1, z2 - z1) # Line 1
         v = (x4 - x3, y4 - y3, z4 - z3) # Line 2
@@ -260,7 +253,7 @@ class JacoEnv(gym.Env):
         # Calculate t and s
         t = (dot_uv*dot_vw - dot_vv*dot_uw) / den_t
         s = (dot_uu*dot_vw - dot_uv*dot_uw) / den_s
-        
+
         # Calculate the closest points on each line segment
         if t < 0:
             x = x1
@@ -286,23 +279,44 @@ class JacoEnv(gym.Env):
             xs = x3 + s*v[0]
             ys = y3 + s*v[1]
             zs = z3 + s*v[2]
-            
+
         # Calculate the distance between the closest points
         return math.sqrt((x - xs)**2 + (y - ys)**2 + (z - zs)**2)
     
-    def robot_intersects_self(self,width = 0.05):
-        j1, j2, j3, j4, j5, j6, j7, _ = self.get_cartesian_coordinates()
-        line_segments = [((0,0,0),j1),(j1,j2),(j2,j3),(j3,j4),(j4,j5),(j5,j6),(j6,j7)]
-
-        # All possible pairs of coordinates that need to be checked for intersect
-        for seg1, seg2 in list(combinations(line_segments, 2)):
-            p1,p2 = seg1
-            p3,p4 = seg2
-            if(min_dist(p1,p2,p3,p4) <= width):
-                return true
-        return false
+    def robot_intersects_self(self,tol = 0.1):
+        j1, j2, j3, j4, j5, j6, j7, finger = self.get_cartesian_points()
+        # Loop through all segments in the robot arm that are not right
+        # next to eachother and check min distance to determine collision
+        points = [j1, j2, j3, j4, j5, j6, j7]
+        for i in range(len(points)-1):
+            p1 = points[i]
+            p2 = points[i+1]
+            # First check if the (p1,p2) segment of the robot intersects either
+            # the finger palm, finger hand, or finger joint
+            if(i <= 4): # Not directly connected to a finger
+                for section in finger:
+                    p3 = j7
+                    p4 = section
+                    if(min_dist(p1,p2,p3,p4) <= tol):
+                        return True
+            # Else check if the (p1,p2) segmant intersects any other non-adjacent
+            # section of the arm
+            for j in range(len(points)-1):
+                p3 = points[j]
+                p4 = points[j+1]
+                if (abs(j-i) > 1):
+                    if(min_dist(p1,p2,p3,p4) <= tol):
+                        print("segments",i,j)
+                        print(min_dist(p1,p2,p3,p4))
+                        return True
+        return False
 
     #================================ MOVEMENT ================================#
+
+    # Functions to execute actual movement of robot (don't mess with these),
+    # these functions will be called automatically in the step function when
+    # a given action is passed in, so to make the robot move just call 
+    # env.step(action) instead of using these
     
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
@@ -332,6 +346,22 @@ class JacoEnv(gym.Env):
                 return False
             else:
                 return self.wait_for_action_end_or_abort() #True
+    
+    def rotate_about(self,basis,col,angle):
+        #rotates a basis around the 'col'th vector by 'angle'
+        # always goes counterclockwise, i.e. 
+        #  rotation about x sends y to z, 
+        #  rotation about y sends z to x, 
+        #  rotation about z sends x to y, 
+        new_basis=basis.copy()
+        cols=[0,1,2]
+        cols.remove(col) # these are the ones that change
+        if col==1:
+            cols.reverse() # now rotation is in direction col[0] -> col[1]
+            
+        new_basis[:,cols[0]]=np.cos(angle)*basis[:,cols[0]] + np.sin(angle) * basis[:,cols[1]] # cols[0] is rotated towards cols[1]
+        new_basis[:,cols[1]]=np.cos(angle)*basis[:,cols[1]] - np.sin(angle) * basis[:,cols[0]] # cols[1] is rotated away from cols[0]
+        return new_basis
 
     def move_fingy(self, value):
         # Initialize the request
