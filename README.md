@@ -13,29 +13,17 @@ The repository contains the following sub-folders:
 
 ## Environment Details
 
-<b>Action space:</b> 7d array of values -1 to 1 indicating how much to move each joint:
+<b>Action space</b> 
 
-For joints 0-5 (all non-finger joints)
-- 1 = move the current joint by the max amount in a given "step"
-- 0 = hold current position
-- -1 = move the current joint in the opposite dirrectino by the max amount
+The action space is a 7d array of values between -1 and 1, where indices 0-5 represent movement displacements of each robot joint, and index 6 represents the new position of the fingers (1 = fingers closed, -1 = fingers opened). To prevent large jumps in robot position, we define a maximum angular movement each of the 6 non-finger joints can travel in a given step (self.differences), and a 1 in a given joint position represents moving that joint the maximum angular step-distance, while a -1 in that joint posion means rotating the joint backwards the maxmimum amount for a given step. 
 
-For joint 6 (the finger joint)
+- ex. [0,0,0,0,0,0,1] = keeping the robot in the same position, but pinching the fingers
+- ex. [1,1,1,1,1,1,0] = stepping each joint forward by the maximum angular movement (which is really just a relatively small movement in each joint to prevent large jumps), and unpinching the fingers
 
-- 1 = close both fingers
-- 0 = half-closed fingers
-- -1 = open both fingers
+<b>Useful Features</b>
 
-| Num           | Observation                        | Min   | Max  |
-| ------------- | ---------------------------------- | ----- | ---- |
-| 0             | joint_1 position                   | -inf  | inf  |
-| ...           | ...                                | -inf  | inf  |
-| 5             | joint_6 position.                  | -inf  | inf  |
-| 6             | joint_finger_1 position            |   0   |  0.8 |
-| 7             | joint_1 velocity (rad/s)           | -inf  | inf  |
-| 8             | joint_finger_3 angle (rad)         | -inf  | inf  |
-
-(N.m)
+- Built-in <b>camera</b> mounted on the robot joint that stores Image objects through ```self.camera_data```, and functions to <b>save the current camera image</b> through the ```save_image``` function that is supported by the included ros_numpy sub-directory
+- Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
 
 ## Installation
 
@@ -248,149 +236,6 @@ python3 enjoy.py --algo ppo2 --env JacoGazebo-v1 -f logs/ --exp-id 0 -n 2000
 
 ```bash
 python3 plot_results.py -f logs/ppo2/JacoGazebo-v1_1/
-```
-
-
-## Environment details
-
-### Observation
-
-If reading the full state:
-
-Type: Box(36)    
-
-| Num           | Observation                        | Min   | Max  |
-| ------------- | ---------------------------------- | ----- | ---- |
-| 0             | joint_1 angle (rad)                | -inf  | inf  |
-| 1             | joint_2 angle (rad)                | -inf  | inf  |
-| 2             | joint_3 angle (rad)                | -inf  | inf  |
-| 3             | joint_4 angle (rad)                | -inf  | inf  |
-| 4             | joint_5 angle (rad)                | -inf  | inf  |
-| 5             | joint_6 angle (rad)                | -inf  | inf  |
-| 6             | joint_finger_1 angle (rad)         | -inf  | inf  |
-| 7             | joint_finger_2 angle (rad)         | -inf  | inf  |
-| 8             | joint_finger_3 angle (rad)         | -inf  | inf  |
-| 9             | joint_finger_tip_1 angle (rad)     | -inf  | inf  |
-| 10            | joint_finger_tip_2 angle (rad)     | -inf  | inf  |
-| 11            | joint_finger_tip_3 angle (rad)     | -inf  | inf  |
-| 12            | joint_1 velocity (rad/s)           | -inf  | inf  |
-| 13            | joint_2 velocity (rad/s)           | -inf  | inf  |
-| 14            | joint_3 velocity (rad/s)           | -inf  | inf  |
-| 15            | joint_4 velocity (rad/s)           | -inf  | inf  |
-| 16            | joint_5 velocity (rad/s)           | -inf  | inf  |
-| 17            | joint_6 velocity (rad/s)           | -inf  | inf  |
-| 18            | joint_finger_1 velocity (rad/s)    | -inf  | inf  |
-| 19            | joint_finger_2 velocity (rad/s)    | -inf  | inf  |
-| 20            | joint_finger_3 velocity (rad/s)    | -inf  | inf  |
-| 21            | joint_finger_tip_1 velocity (rad/s)| -inf  | inf  |
-| 22            | joint_finger_tip_2 velocity (rad/s)| -inf  | inf  |
-| 23            | joint_finger_tip_3 velocity (rad/s)| -inf  | inf  |
-| 24            | joint_1 effort (N.m)               | -inf  | inf  |
-| 25            | joint_2 effort (N.m)               | -inf  | inf  |
-| 26            | joint_3 effort (N.m)               | -inf  | inf  |
-| 27            | joint_4 effort (N.m)               | -inf  | inf  |
-| 28            | joint_5 effort (N.m)               | -inf  | inf  |
-| 29            | joint_6 effort (N.m)               | -inf  | inf  |
-| 30            | joint_finger_1 effort (N.m)        | -inf  | inf  |
-| 31            | joint_finger_2 effort (N.m)        | -inf  | inf  |
-| 32            | joint_finger_3 effort (N.m)        | -inf  | inf  |
-| 33            | joint_finger_tip_1 effort (N.m)    | -inf  | inf  |
-| 34            | joint_finger_tip_2 effort (N.m)    | -inf  | inf  |
-| 35            | joint_finger_tip_3 effort (N.m)    | -inf  | inf  |
-
-
-If reading the simplified state:
-
-Type: Box(12)    
-
-
-| Num           | Observation                        | Min   | Max  |
-| ------------- | ---------------------------------- | ----- | ---- |
-| 0             | joint_1 angle (rad)                | -inf  | inf  |
-| 1             | joint_2 angle (rad)                | -inf  | inf  |
-| 2             | joint_3 angle (rad)                | -inf  | inf  |
-| 3             | joint_4 angle (rad)                | -inf  | inf  |
-| 4             | joint_5 angle (rad)                | -inf  | inf  |
-| 5             | joint_6 angle (rad)                | -inf  | inf  |
-| 6            | joint_1 velocity (rad/s)            | -inf  | inf  |
-| 7            | joint_2 velocity (rad/s)            | -inf  | inf  |
-| 8            | joint_3 velocity (rad/s)            | -inf  | inf  |
-| 9            | joint_4 velocity (rad/s)            | -inf  | inf  |
-| 10            | joint_5 velocity (rad/s)           | -inf  | inf  |
-| 11            | joint_6 velocity (rad/s)           | -inf  | inf  |
-
-
-
-### Actions
-Type: Box(6)
-
-| Num           | Action                        | Min   | Max  |
-| ------------- | ----------------------------- | ----- | ---- |
-| 0             | joint_1 angle (scaled)        | -1    | 1    |
-| 1             | joint_2 angle (scaled)        | -1    | 1    |
-| 2             | joint_3 angle (scaled)        | -1    | 1    |
-| 3             | joint_4 angle (scaled)        | -1    | 1    |
-| 4             | joint_5 angle (scaled)        | -1    | 1    |
-| 5             | joint_6 angle (scaled)        | -1    | 1    |
-
-Note, at the moment joint_2 angle is restricted to 180 deg and joint_3 angle is restricted to the interval [90, 270] deg in order to reduce the arm's amplitude of motion.
-
-### Reward
-The reward is incremented at each time step by the negative of the distance between the target object position and the end deflector position (joint_6).
-
-
-### Starting State
-The arm is initialised with its joint angles as follows (in degrees): [0, 180, 180, 0, 0, 0].
-The target object is initialised to a random location within the arm's reach.
-
-
-### Episode Termination
-An episode terminates if more than 50 time steps are completed.
-
-
-### Step info
-The info dictionary returned by the env.step function is structured as follows:
-```python
-info = {'tip coordinates': [x, y, z], 'target coordinates': array([x, y, z])}
-```
-
-## Python profiling
-You can profile the time individual lines of code take to execute to monitor the code performance using [line_profiler](https://github.com/rkern/line_profiler).
-
-### Install line-profiler
-
-```bash
-pip install line-profiler
-```
-
-### Decorate the functions you want to profile with @profile
-
-For example:
-
-```bash
-vim scripts/0_test_jaco_gazebo_action_gym.py
-```
-
-```python
-@profile
-def main():
-
-    for episode in range(3):
-
-        obs = env.reset()
-        ...
-```
-
-### Execute code and profile
-
-```bash
-kernprof -l 0_test_jaco_gazebo_action_gym.py
-```
-
-### Read profiling results line by line
-
-```bash
-python -m line_profiler 0_test_jaco_gazebo_action_gym.py.lprof > profiling_result_test.txt
 ```
 
 ## Supported systems
