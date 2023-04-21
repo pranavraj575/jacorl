@@ -247,7 +247,9 @@ class JacoEnv(gym.Env):
         for leng in self.LENGTHS[7:]:
             pos+=leng*basis[:,2]
             gripper_positions.append(pos.copy())
+        print(gripper_positions)
         return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
+        # Gripper positions has palm of hand, and other data
 
     #========================= SAVING CAMERA IMAGES ===========================#
             
@@ -262,7 +264,70 @@ class JacoEnv(gym.Env):
         img=self.get_image_PIL()
         img.save(filee)
     
+    #============================== INTERSECTION ==============================#
+
+    # min test between line segment (p1, p2) and line segment (p3, p4)
+    def min_dist(p1,p2,p3,p4):
+        x1, y1, z1 = p1
+        x2, y2, z2 = p2
+        x3, y3, z3 = p3
+        x4, y4, z4 = p4
+
+        # Calculate the direction vectors for each line segment
+        u = (x2 - x1, y2 - y1, z2 - z1) # Line 1
+        v = (x4 - x3, y4 - y3, z4 - z3) # Line 2
+        w = (x1 - x3, y1 - y3, z1 - z3) # Segment connect lines 1 and 2
+        
+        # Calculate dot products
+        dot_uu = u[0]*u[0] + u[1]*u[1] + u[2]*u[2]
+        dot_uv = u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
+        dot_uw = u[0]*w[0] + u[1]*w[1] + u[2]*w[2]
+        dot_vv = v[0]*v[0] + v[1]*v[1] + v[2]*v[2]
+        dot_vw = v[0]*w[0] + v[1]*w[1] + v[2]*w[2]
+        
+        # Calculate denominators for t and s
+        den_t = dot_uu*dot_vv - dot_uv**2
+        den_s = den_t
+        
+        # If the denominators are zero, the lines are parallel
+        if den_t == 0:
+            return math.sqrt(min(abs(dot_uw/dot_uu), abs((dot_uw + dot_uv)/dot_uu), abs(dot_vw/dot_vv), abs((dot_vw + dot_uv)/dot_vv)))
+        
+        # Calculate t and s
+        t = (dot_uv*dot_vw - dot_vv*dot_uw) / den_t
+        s = (dot_uu*dot_vw - dot_uv*dot_uw) / den_s
+        
+        # Calculate the closest points on each line segment
+        if t < 0:
+            x = x1
+            y = y1
+            z = z1
+        elif t > 1:
+            x = x2
+            y = y2
+            z = z2
+        else:
+            x = x1 + t*u[0]
+            y = y1 + t*u[1]
+            z = z1 + t*u[2]
+        if s < 0:
+            xs = x3
+            ys = y3
+            zs = z3
+        elif s > 1:
+            xs = x4
+            ys = y4
+            zs = z4
+        else:
+            xs = x3 + s*v[0]
+            ys = y3 + s*v[1]
+            zs = z3 + s*v[2]
+            
+        # Calculate the distance between the closest points
+        return math.sqrt((x - xs)**2 + (y - ys)**2 + (z - zs)**2)
+
     #================================ MOVEMENT ================================#
+    
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
