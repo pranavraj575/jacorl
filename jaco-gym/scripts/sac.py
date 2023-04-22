@@ -10,8 +10,6 @@ from rlkit.data_management.env_replay_buffer import EnvReplayBuffer
 #from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
 from jaco_gym.envs.task_envs.stack_cups_gazebo import JacoStackCupsGazebo
 
-
-
 from rlkit.launchers.launcher_util import setup_logger
 from rlkit.samplers.data_collector import MdpPathCollector
 from rlkit.torch.sac.policies import TanhGaussianPolicy, MakeDeterministic
@@ -21,8 +19,8 @@ from rlkit.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
 
 
 def experiment(variant):
-    expl_env = env# JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
-    eval_env = env#JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
+    expl_env = JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
+    eval_env = JacoStackCupsGazebo() #NormalizedBoxEnv(HalfCheetahEnv())
     obs_dim = expl_env.observation_space.low.size
     action_dim = eval_env.action_space.low.size
 
@@ -86,9 +84,6 @@ def experiment(variant):
     algorithm.to(ptu.device)
     algorithm.train()
 
-
-
-
 if __name__ == "__main__":
     # noinspection PyTypeChecker
     variant = dict(
@@ -122,4 +117,4 @@ if __name__ == "__main__":
     experiment(variant)
     env.close()
     setup_logger('name-of-experiment', variant=variant)
-    # ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)
+    ptu.set_gpu_mode(True)  # optionally set the GPU (default=False)

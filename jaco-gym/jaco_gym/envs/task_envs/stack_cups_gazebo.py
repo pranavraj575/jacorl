@@ -68,36 +68,51 @@ class JacoStackCupsGazebo(JacoEnv):
         return 30
 
     def get_reward(self):
-        self.tip_coord = self.get_tip_coord() # This is not going to work yet
-        self.reward = 100
+        print("\n--------------------")
+        self.tip_coord = self.get_tip_coord() 
+        self.reward = 0
         closest_dist = 100
         cups = ["cup1","cup2","cup3"]
         for cup in cups:
             pos = self.object_data[cup].position
-            # print("\n--------------------")
-            # self.robot.cup_in_hand(pos)
-            # print("--------------------\n")
             # Negative reward for each cup that is off the table
             if (not self.cup_on_table(pos)):
                 print(cup, " is off the table")
                 self.reward -= 50
-            else:  # Large positive reward for each cup in the goal zone
+            else:
+                # Large positive reward for each cup in the goal zone
                 if(self.cup_at_goal_loc(pos)):
                     print(cup, " is at the goal")
                     self.reward += 100
-                else: # Reward incentivising cups to be close to goal
+                else: 
+                    # Reward incentivising cups to be close to goal
                     dist_to_goal = self.cup_goal_x - pos.x
                     self.reward -= dist_to_goal * 10
-                    # FIX ME!!! 
-                    #dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z])) 
-                    # if(dist_to_cup < closest_dist):
-                    #     closest_dist = dist_to_cup
+                    dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z])) 
+                    if(dist_to_cup < closest_dist):
+                        closest_dist = dist_to_cup
+                        
         # Reward incentivising robot tip to be close to the nearest cup not 
         # already in the goal zone, as long as there are sitll cups not at goal
         if(closest_dist != 100):
             print(cup, " is dist ", closest_dist)
             self.reward -= closest_dist * 10
+        
+        # Positive reward if a robot is holding a cup
+        if(self.robot_holding_cup()):
+            print(cup, " is in hand!")
+            self.reward += 50
+        
+        # Negative reward if robot is too far from table range
+        x,y,z = self.get_tip_coord()
+        max_z = 0.5
+        if (y <= self.table_y_range[0] or y >= self.table_y_range[1] or z >= max_z):
+            y_penalty = np.linalg.norm(y-self.table_y_range)**2 * 20
+            z_penalty = np.linalg.norm(z-max_z)**2 * 20
+            print("Robot too far from table, deduciting ", y_penalty+z_penalty, " from score")
+            self.reward -= y_penalty+z_penalty
         print("Reward is ",self.reward)
+        print("--------------------\n")
     
     #========================= RESETTING ENVIRONMENT ==========================#
     
@@ -171,10 +186,8 @@ class JacoStackCupsGazebo(JacoEnv):
         joint_positions,_,joint_efforts = self.get_joint_state()
         finger_pos = joint_positions[6]
         finger_eff = joint_efforts[6]
-        return finger_pos >= min_grap_pos and finger_eff >= min_grab_eff
+        return finger_pos >= min_grab_pos and finger_eff >= min_grab_eff
 
     def get_tip_coord(self):
-        _,_,_,_,_,_,_,_,gripper_positions = self.get_cartesian_points()
-        return
-        return self.get_joint_state()[0][:6] 
+        return self.get_cartesian_points()[-1][-1]
     
