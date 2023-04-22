@@ -28,6 +28,8 @@ Unlike other Kinova implementations that are specific to either a physical robot
 - Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
 - Functions to <b>detect the robot colliding</b> with its joints 
 
+<br /> 
+
 ![Jaco Gazebo](/env_features.png)
 
 Camera capture from the simulated robot (left), and bounding box of joint on the simulated robot (right)
