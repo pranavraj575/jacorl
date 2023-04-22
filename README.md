@@ -24,10 +24,11 @@ The action space is a 7d array of values between -1 and 1, where indices 0-5 rep
 
 - Built-in <b>camera</b> mounted on the robot joint that stores Image objects through ```self.camera_data```, and functions to <b>save the current camera image</b> through the ```save_image``` function that is supported by the included ros_numpy sub-directory
 - Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
+- Functions to <b>detect the robot colliding</b> with its joints 
 
 ![Jaco Gazebo](/features.png)
 
-Camera capture functions, and functions to get joint positions and detect intersections that work both in simulation and on the physical bot
+Camera capture from the simulated robot (left), and bounding box of joint on the simulated robot (right)
 
 ## Installation
 
