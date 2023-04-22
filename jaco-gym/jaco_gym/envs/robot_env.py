@@ -198,7 +198,6 @@ class JacoEnv(gym.Env):
         for leng in self.LENGTHS[7:]:
             pos+=leng*basis[:,2]
             gripper_positions.append(pos.copy())
-        print(gripper_positions)
         return bottom, base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
         # Gripper positions has palm of hand, and other data
 
@@ -226,7 +225,6 @@ class JacoEnv(gym.Env):
     # simply by having access to the robot's joint angles
     
     def segment_dist_min(self,a0,a1,b0,b1,tol=.001):
-    
         ''' Given two lines defined by numpy.array pairs (a0,a1,b0,b1)
             Return the closest points on each segment and their distance
         '''    
@@ -275,11 +273,10 @@ class JacoEnv(gym.Env):
             opt=(None,None)
             for ai in (a0,a1):
                 for bi in (b0,b1):
-                    dist=np.linalg.norm(a-b)
+                    dist=np.linalg.norm(ai-bi)
                     if opt[0] is None or dist<opt[0]:
-                        opt=dist,(a,b)
+                        opt=dist,(ai,bi)
             return opt           
-        
         
         # Lines criss-cross: Calculate the projected closest points
         t = (b0 - a0);
@@ -291,7 +288,6 @@ class JacoEnv(gym.Env):
     
         pA = a0 + (_A * t0) # Projected closest point on segment A
         pB = b0 + (_B * t1) # Projected closest point on segment B
-    
     
         # Clamp projections
         if t0 < 0:
@@ -322,15 +318,14 @@ class JacoEnv(gym.Env):
                 dot = magA
             pA = a0 + (_A * dot)
     
-        
         return np.linalg.norm(pA-pB),(pA,pB)
     
     def robot_intersects_self(self,tol = 0.1,
                         check=( # which segments to check 
                                 ((0,2),(3,5)),  # i.e. this means check segment on joints 0->2 and segment on joints 3->4 (base to shoulder segment and elbow to wrist segment)
-                                ((0,2),(5,'f')) # 'f' represents finger, might be different based on finger grippy position
+                                ((0,2),(5,'f')), # 'f' represents finger, might be different based on finger grippy position
                                 ((2,3),(5,'f')) # ALWAYS put 'f' at the end, this makes the method less annoying
-                              )):
+                                )):
         jointy_pointy=self.get_cartesian_points()
         finger=jointy_pointy[-1]
         for (i0,i1),(j0,j1) in check: # checks line segments between joint points at these indices  
