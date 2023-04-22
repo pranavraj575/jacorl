@@ -22,6 +22,8 @@ The action space is a 7d array of values between -1 and 1, where indices 0-5 rep
 
 <b>Useful Features</b>
 
+Unlike other Kinova implementations that are specific to either a physical robot or a simulation, we provide an implementation flexible enough to work in both environments. The robot enviornment also provides many useful functions that we have implemented without any ROS built-ins (just with pure trig and other computations), so they can be called in both the sim and real world, including:
+
 - Built-in <b>camera</b> mounted on the robot joint that stores Image objects through ```self.camera_data```, and functions to <b>save the current camera image</b> through the ```save_image``` function that is supported by the included ros_numpy sub-directory
 - Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
 - Functions to <b>detect the robot colliding</b> with its joints 
