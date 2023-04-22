@@ -22,6 +22,7 @@ class JacoStackCupsGazebo(JacoEnv):
         self.table_y_range=(-0.29,0.29)
         self.cup_ranges=((1.4,0.31),self.table_y_range)
         self.cup_goal_x = 0.3 # or above
+        self.max_cup_x = self.cup_ranges[0][0]
 
         # Subscribe to object data to obtain cup locations
         self.object_data={}
@@ -34,8 +35,7 @@ class JacoStackCupsGazebo(JacoEnv):
 
     def step(self,action):
         joint_obs,_,_,_=super().step(action)
-        REWARD=self.get_reward()
-        DONE=False
+        REWARD,DONE=self.get_reward_done()
         INFO={}
         obs=self.get_obs()
         print("good")
@@ -67,56 +67,78 @@ class JacoStackCupsGazebo(JacoEnv):
         print("Here")
         return 30
 
-    def get_reward(self):
+    def get_reward_done(self):
         print("\n--------------------")
-        self.tip_coord = self.get_tip_coord() 
-        self.reward = 0
-        closest_dist = 100
+        tip_coord = self.get_tip_coord() 
+        total_reward = 0
+        if(self.robot_intersects_self()):
+            print("Ending episode because robot is intersecting itself")
+            return -1, True
+
+        # Reward factors
+        dist_to_cup_r = 0     #1 = touching cup, 0 = fal from cup
+        cups_near_goal_r = 0  #1 = all cups at goal, 0 = cups at max dist from goal
+        cups_at_goal_r = 0    #1 = all cups at goal, 0 = no cups at goal --- is this repetitive?
+        robot_near_table = 1  #1 = robot in general vacinity of table, 0 = robot way far from table
+        robot_holding_cup_r = self.robot_holding_cup_r() 
+
         cups = ["cup1","cup2","cup3"]
+        num_cups = len(cups)
+        closest_dist = None
+        max_tip_to_cup_dist = self.max_cup_x
+        max_cup_to_goal_dist = self.max_cup_x - self.cup_goal_x
         for cup in cups:
             pos = self.object_data[cup].position
-            # Negative reward for each cup that is off the table
+            # A cup fell off the table, end the episode
             if (not self.cup_on_table(pos)):
-                print(cup, " is off the table")
-                self.reward -= 50
+                print("Ending episode because a cup fell off the table")
+                return -1, True
             else:
-                # Large positive reward for each cup in the goal zone
+                # Is cup at the goal zone?
                 if(self.cup_at_goal_loc(pos)):
-                    print(cup, " is at the goal")
-                    self.reward += 100
+                    cups_at_goal_r += 1/num_cups
                 else: 
-                    # Reward incentivising cups to be close to goal
-                    dist_to_goal = self.cup_goal_x - pos.x
-                    self.reward -= dist_to_goal * 10
-                    dist_to_cup = np.linalg.norm(self.tip_coord - np.array([pos.x,pos.y,pos.z])) 
-                    if(dist_to_cup < closest_dist):
+                    # Calculate the distance of this cup to the goal
+                    my_dist_to_goal = abs(self.cup_goal_x - pos.x)
+                    cups_near_goal_r += 1/num_cups * max((1-my_dist_to_goal),0)
+                    dist_to_cup = np.linalg.norm(tip_coord - np.array([pos.x,pos.y,pos.z])) 
+                    if(closest_dist == None or dist_to_cup < closest_dist):
                         closest_dist = dist_to_cup
-                        
-        # Reward incentivising robot tip to be close to the nearest cup not 
-        # already in the goal zone, as long as there are sitll cups not at goal
-        if(closest_dist != 100):
+
+        # Determine distance to closest cup
+        if(closest_dist != None):
             print(cup, " is dist ", closest_dist)
-            self.reward -= closest_dist * 10
+            dist_to_cup_r = max(min(max_tip_to_cup_dist - closest_dist,1),0)
+            #print(dist_to_cup_r)
         
-        # Positive reward if a robot is holding a cup
-        if(self.robot_holding_cup()):
-            print(cup, " is in hand!")
-            self.reward += 50
-        
-        # Negative reward if robot is too far from table range
-        x,y,z = self.get_tip_coord()
+        # Want robot to be within table range
+        x,y,z = tip_coord
         max_z = 0.5
         if (y <= self.table_y_range[0] or y >= self.table_y_range[1] or z >= max_z):
-            y_penalty = np.linalg.norm(y-self.table_y_range)**2 * 20
-            z_penalty = np.linalg.norm(z-max_z)**2 * 20
-            print("Robot too far from table, deduciting ", y_penalty+z_penalty, " from score")
-            self.reward -= y_penalty+z_penalty
-        print("Reward is ",self.reward)
+            y_penalty = np.linalg.norm(y-self.table_y_range)
+            z_penalty = np.linalg.norm(z-max_z)
+            robot_near_table = 1 - min((y_penalty + z_penalty)*10,1)
+        
+        reward_factors = [dist_to_cup_r,
+                          cups_near_goal_r,
+                          cups_at_goal_r,
+                          robot_near_table,
+                          robot_holding_cup_r]
+        reward_weights = [1,1,1,1,1]
+
+        print(reward_factors)
+        for i in range(len(reward_factors)):
+            total_reward += reward_factors[i] * reward_weights[i]
+        total_reward = total_reward / sum(reward_weights) # Normalize
+
+        print("Reward is ",total_reward)
         print("--------------------\n")
+        return total_reward, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
     
     def reset_cups(self):
+        print("RESETTing")
         # generate random new cup positions
         cup_names = ["cup1", "cup2", "cup3"]
         cup_positions = []
@@ -140,6 +162,7 @@ class JacoStackCupsGazebo(JacoEnv):
         return False
     
     def move_cups(self, positions,orientations=None):
+        print("moving cups")
         # move cups to the randomized positions
         cup_names = ["cup1", "cup2", "cup3"]
         for zs in [[-1]*3,[p[2] for p in positions]]:
@@ -182,7 +205,7 @@ class JacoStackCupsGazebo(JacoEnv):
     def cup_at_goal_loc(self,pos):
         return self.cup_on_table(pos) and (pos.x <= self.cup_goal_x)
     
-    def robot_holding_cup(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
+    def robot_holding_cup_r(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
         joint_positions,_,joint_efforts = self.get_joint_state()
         finger_pos = joint_positions[6]
         finger_eff = joint_efforts[6]
