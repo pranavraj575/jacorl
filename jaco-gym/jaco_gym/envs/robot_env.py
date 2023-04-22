@@ -170,6 +170,7 @@ class JacoEnv(gym.Env):
         # returns points of each joint, calculated with trig
         joint_angles,_,_=self.get_joint_state()
         pos=np.array([0.,0.,0.]) # keeps track of position
+        bottom=pos.copy() # included for completion
         basis=np.identity(3) # keeps track of rotation, column vectors are the basis
         pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
         base_rot_joint=pos.copy()
@@ -198,7 +199,7 @@ class JacoEnv(gym.Env):
             pos+=leng*basis[:,2]
             gripper_positions.append(pos.copy())
         print(gripper_positions)
-        return base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
+        return bottom, base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
         # Gripper positions has palm of hand, and other data
 
     #========================= SAVING CAMERA IMAGES ===========================#
@@ -223,91 +224,125 @@ class JacoEnv(gym.Env):
     # to eachother, doesn't use any ROS methods (just pure trig and vector
     # operations), so this can be called both in the simulation and real robot
     # simply by having access to the robot's joint angles
-
-    # min test between line segment (p1, p2) and line segment (p3, p4)
-    def min_dist(self,p1,p2,p3,p4):
-        x1, y1, z1 = p1
-        x2, y2, z2 = p2
-        x3, y3, z3 = p3
-        x4, y4, z4 = p4
-        
-        # Calculate the direction vectors for each line segment
-        u = (x2 - x1, y2 - y1, z2 - z1) # Line 1
-        v = (x4 - x3, y4 - y3, z4 - z3) # Line 2
-        w = (x1 - x3, y1 - y3, z1 - z3) # Segment connect lines 1 and 2
-        
-        # Calculate dot products
-        dot_uu = u[0]*u[0] + u[1]*u[1] + u[2]*u[2]
-        dot_uv = u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
-        dot_uw = u[0]*w[0] + u[1]*w[1] + u[2]*w[2]
-        dot_vv = v[0]*v[0] + v[1]*v[1] + v[2]*v[2]
-        dot_vw = v[0]*w[0] + v[1]*w[1] + v[2]*w[2]
-        
-        # Calculate denominators for t and s
-        den_t = dot_uu*dot_vv - dot_uv**2
-        den_s = den_t
-        
-        # If the denominators are zero, the lines are parallel
-        if den_t == 0:
-            return math.sqrt(min(abs(dot_uw/dot_uu), abs((dot_uw + dot_uv)/dot_uu), abs(dot_vw/dot_vv), abs((dot_vw + dot_uv)/dot_vv)))
-        
-        # Calculate t and s
-        t = (dot_uv*dot_vw - dot_vv*dot_uw) / den_t
-        s = (dot_uu*dot_vw - dot_uv*dot_uw) / den_s
-
-        # Calculate the closest points on each line segment
-        if t < 0:
-            x = x1
-            y = y1
-            z = z1
-        elif t > 1:
-            x = x2
-            y = y2
-            z = z2
-        else:
-            x = x1 + t*u[0]
-            y = y1 + t*u[1]
-            z = z1 + t*u[2]
-        if s < 0:
-            xs = x3
-            ys = y3
-            zs = z3
-        elif s > 1:
-            xs = x4
-            ys = y4
-            zs = z4
-        else:
-            xs = x3 + s*v[0]
-            ys = y3 + s*v[1]
-            zs = z3 + s*v[2]
-
-        # Calculate the distance between the closest points
-        return math.sqrt((x - xs)**2 + (y - ys)**2 + (z - zs)**2)
     
-    def robot_intersects_self(self,tol = 0.1):
-        j1, j2, j3, j4, j5, j6, j7, finger = self.get_cartesian_points()
-        # Loop through all segments in the robot arm that are not right
-        # next to eachother and check min distance to determine collision
-        points = [j1, j2, j3, j4, j5, j6, j7]
-        for i in range(len(points)-1):
-            p1 = points[i]
-            p2 = points[i+1]
-            # First check if the (p1,p2) segment of the robot intersects either
-            # the finger palm, finger hand, or finger joint
-            if(i <= 4): # Not directly connected to a finger
-                for section in finger:
-                    p3 = j7
-                    p4 = section
-                    if(self.min_dist(p1,p2,p3,p4) <= tol):
-                        return True
-            # Else check if the (p1,p2) segmant intersects any other non-adjacent
-            # section of the arm
-            for j in range(len(points)-1):
-                p3 = points[j]
-                p4 = points[j+1]
-                if (abs(j-i) > 1):
-                    if(self.min_dist(p1,p2,p3,p4) <= tol):
-                        return True
+    def segment_dist_min(self,a0,a1,b0,b1,tol=.001):
+    
+        ''' Given two lines defined by numpy.array pairs (a0,a1,b0,b1)
+            Return the closest points on each segment and their distance
+        '''    
+        # vectors, cross product
+        A = a1 - a0
+        B = b1 - b0
+        magA = np.linalg.norm(A)
+        magB = np.linalg.norm(B)
+        
+        _A = A / magA
+        _B = B / magB
+        
+        cross = np.cross(_A, _B);
+        denom = np.linalg.norm(cross)**2
+        
+        
+        # If lines are parallel (denom=0) test if lines overlap.
+        # If they don't overlap then there is a closest point solution.
+        # If they do overlap, there are infinite closest positions, but there is a closest distance
+        if denom<=tol:
+            #crossing vectors
+            w00=b0-a0
+            w01=b1-a0
+            w10=b0-a1
+            w11=b1-a1
+            
+            #finding projection of a0->b0 onto line a:
+            proj=np.dot(_A,w00)
+            proj_v=_A*proj
+            
+            # proj_v+error_v = a0->b0 where proj_v is along line a and error v is perp to it
+            error_v=w00-proj_v 
+            
+            if np.dot(w00,_A)*np.dot(w01,_A)<=0: # point a0 lies in between projections of point b0 and point b1 (i.e. w00 is 'backwards' and w01 is 'forwards', or inverse)
+                return np.linalg.norm(error_v),(a0,a0+error_v) # note a0+error_v should be on line b
+                
+            elif np.dot(w10,_A)*np.dot(w11,_A)<=0: # point a1 is in between proj of points b0 and b1
+                return np.linalg.norm(error_v),(a1,a1+error_v)
+            
+            elif np.dot(w00,_B)*np.dot(w10,_B)<=0: # point b0 in betweeen proj of pts a0 and a1
+                return np.linalg.norm(error_v),(b0-error_v,b0) # minus since error_v is from line a to line b
+                
+            elif np.dot(w01,_B)*np.dot(w11,_B)<=0: # point b1 in betweeen proj of pts a0 and a1
+                return np.linalg.norm(error_v),(b1-error_v,b1) 
+            # we must now find min of the endpoints, since the centers do not overlap
+            opt=(None,None)
+            for ai in (a0,a1):
+                for bi in (b0,b1):
+                    dist=np.linalg.norm(a-b)
+                    if opt[0] is None or dist<opt[0]:
+                        opt=dist,(a,b)
+            return opt           
+        
+        
+        # Lines criss-cross: Calculate the projected closest points
+        t = (b0 - a0);
+        detA = np.linalg.det([t, _B, cross])
+        detB = np.linalg.det([t, _A, cross])
+    
+        t0 = detA/denom;
+        t1 = detB/denom;
+    
+        pA = a0 + (_A * t0) # Projected closest point on segment A
+        pB = b0 + (_B * t1) # Projected closest point on segment B
+    
+    
+        # Clamp projections
+        if t0 < 0:
+            pA = a0
+        elif t0 > magA:
+            pA = a1
+        
+        if t1 < 0:
+            pB = b0
+        elif t1 > magB:
+            pB = b1
+            
+        # Clamp projection A
+        if (t0 < 0) or (t0 > magA):
+            dot = np.dot(_B,(pA-b0))
+            if dot < 0:
+                dot = 0
+            elif dot > magB:
+                dot = magB
+            pB = b0 + (_B * dot)
+    
+        # Clamp projection B
+        if (t1 < 0) or (t1 > magB):
+            dot = np.dot(_A,(pB-a0))
+            if dot < 0:
+                dot = 0
+            elif dot > magA:
+                dot = magA
+            pA = a0 + (_A * dot)
+    
+        
+        return np.linalg.norm(pA-pB),(pA,pB)
+    
+    def robot_intersects_self(self,tol = 0.1,
+                        check=( # which segments to check 
+                                ((0,2),(3,5)),  # i.e. this means check segment on joints 0->2 and segment on joints 3->4 (base to shoulder segment and elbow to wrist segment)
+                                ((0,2),(5,'f')) # 'f' represents finger, might be different based on finger grippy position
+                                ((2,3),(5,'f')) # ALWAYS put 'f' at the end, this makes the method less annoying
+                              )):
+        jointy_pointy=self.get_cartesian_points()
+        finger=jointy_pointy[-1]
+        for (i0,i1),(j0,j1) in check: # checks line segments between joint points at these indices  
+            a0,a1= jointy_pointy[i0], jointy_pointy[i1]
+            b0=jointy_pointy[j0]
+            if j1=='f':
+                b1=finger[-1] # safe for now, just using furthest tip point
+            else:
+                b1=jointy_pointy[j1]
+            dist,points=self.segment_dist_min(a0,a1,b0,b1)
+            if dist<=tol: 
+                return True
         return False
 
     #================================ MOVEMENT ================================#
