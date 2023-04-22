@@ -36,7 +36,7 @@ Camera capture from the simulated robot (left), and bounding box of joint on the
 
 ## Installation
 
-1. First install [ROS](http://wiki.ros.org/ROS/Installation) if it is not already installed on your machine.
+#### 1. Install [ROS](http://wiki.ros.org/ROS/Installation) (if it is not already installed)
 
 * ROS Melodic on Ubuntu 18.04
 * ROS Kinetic on Ubuntu 16.04
@@ -56,8 +56,7 @@ sudo pip3 install rospkg catkin_pkg
 sudo apt-get install swig ffmpeg
 ```
 
-2. Install the robot controllers (maybe remove the stars?)
-
+#### 2. Install the robot controllers
 
 ```bash
 sudo apt-get install ros-<distro>-gazebo-ros-control
@@ -70,9 +69,10 @@ sudo apt-get install ros-<distro>-controller-*
 ```
 (replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
 
-3. Install and configure your Catkin workspace by following this [link](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
+#### 3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment).
 
-4. Install [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src. Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
+#### 4. Install [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src
+Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
 
 ```bash
 cd ~/catkin_ws
@@ -88,7 +88,7 @@ cd ../ros_kortex
 pip3 install -e .
 ```
 
-5. Install dependencies for the ros_kortex and ros_kortex_vision package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex) and [here](https://github.com/pranavraj575/jacorl/tree/master/ros_kortex_vision).
+#### 5. Install dependencies for the ros_kortex and ros_kortex_vision package, as indicated [here](https://github.com/Kinovarobotics/ros_kortex) and [here](https://github.com/pranavraj575/jacorl/tree/master/ros_kortex_vision).
 ```bash
     sudo apt install gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base
     sudo apt-get install ros-<distro>-rgbd-launch
@@ -108,7 +108,7 @@ pip3 install -e .
 (replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
 
 
-6. Install the ROS packages and build.
+#### 6. Install the ROS packages and build.
 
 ```bash
 cd ~/catkin_ws
@@ -118,7 +118,7 @@ catkin_make
 ```
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
 
-7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+#### 7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
 
 ```bash
 cd ~/catkin_ws
