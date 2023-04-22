@@ -26,7 +26,7 @@ The action space is a 7d array of values between -1 and 1, where indices 0-5 rep
 - Functions to get the angular position of each of the joints, and also convert each of these to cartesian coordinates to determine the <b>exact (x,y,z) coordinates of all of the robot joints.</b>
 - Functions to <b>detect the robot colliding</b> with its joints 
 
-![Jaco Gazebo](/features.png)
+![Jaco Gazebo](/env_features.png)
 
 Camera capture from the simulated robot (left), and bounding box of joint on the simulated robot (right)
 
