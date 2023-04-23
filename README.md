@@ -181,6 +181,72 @@ In terminal 2, run the python robot training script:
 python3 scripts/1_train_ppo2.py
 ```
 
+## Enjoy a trained agent
+
+In terminal 1:
+```bash
+roslaunch kinova_gazebo robot_launch.launch kinova_robotType:=j2n6s300
+```
+
+Uncomment this line in jaco_gym/envs/jaco_gazebo_action_env.py
+```python
+self.robot.move_sphere(self.target_vect)
+```
+
+In terminal 2:
+```bash
+python3 scripts/2_enjoy_ppo2.py
+```
+
+## Plot learning curves
+
+```bash
+python3 scripts/3_plot_results.py
+```
+
+
+## Train with Stable Baselines
+
+
+In terminal 1:
+```bash
+roslaunch kinova_gazebo robot_launch_noRender_noSphere.launch kinova_robotType:=j2n6s300 
+```
+
+In terminal 2:
+```bash
+cd stable-baselines-zoo/
+python3 train.py --algo ppo2 --env JacoGazebo-v1 -n 100000 --seed 0 --log-folder logs/ppo2/JacoGazebo-v1_100000/ &> submission_log/log_ppo_jaco.run
+python3 train.py --algo sac --env JacoGazebo-v1 -n 100000 --seed 0 --log-folder logs/sac/JacoGazebo-v1_100000/
+python3 train.py --algo td3 --env JacoGazebo-v1 -n 100000 --seed 0 --log-folder logs/td3/JacoGazebo-v1_100000/
+```
+
+
+
+## Enjoy a trained agent with Stable Baselines
+
+In terminal 1:
+```bash
+roslaunch kinova_gazebo robot_launch.launch kinova_robotType:=j2n6s300
+```
+
+Uncomment this line in jaco_gym/envs/jaco_gazebo_action_env.py
+```python
+self.robot.move_sphere(self.target_vect)
+```
+
+In terminal 2:
+```bash
+cd stable-baselines-zoo/
+python3 enjoy.py --algo ppo2 --env JacoGazebo-v1 -f logs/ --exp-id 0 -n 2000
+```
+
+## Plot stable_baselines results
+
+```bash
+python3 plot_results.py -f logs/ppo2/JacoGazebo-v1_1/
+```
+
 ## Supported systems
 Tested on:
 - Ubuntu 18.04 and 16.04 
