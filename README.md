@@ -147,14 +147,14 @@ In terminal 1, launch the robot connection:
 roslaunch kortex_driver kortex_driver.launch dof:=6 gripper:=robotiq_2f_85 ip_address:=192.168.1.10
 ```
 
-In terminal 2, run the python script to test robot actions:
-```bash
-python3 src/jaco-gym/scripts/test_actions.py
-```
-
-In terminal 3, run ros_kortex vision to publish camera data:
+In terminal 2, run ros_kortex vision to publish camera data:
 ```bash
 roslaunch kinova_vision kinova_vision.launch
+```
+
+In terminal 3, run the python script to test robot actions:
+```bash
+python3 src/jaco-gym/scripts/test_actions.py
 ```
 
 ### For the arm in Gazebo (tested on ROS Melodic and Kinetic)
