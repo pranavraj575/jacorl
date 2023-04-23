@@ -12,20 +12,11 @@ import time
 
 
 rospy.init_node("camera_sampler", log_level=rospy.INFO)
-filename=input('file name (without .npy): ')
-
-env = gym.make(input('env name: '))#('JacoCupsGazebo-v0')
-#JacoStackCupsGazebo()
-
-aim=os.path.join('sample_points',filename+'.npy')
-save_dir=os.path.join('img_data','simulation')
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
-
-wait=.3
-points=np.load(aim)
-finger_samples=1
+filename=input('file name (without .npy, leave blank for all): ')
+SIM=True
+finger_samples=3
 noise_samples=1
+wait=.3
 noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds , put 0,0 for none
                 (-.5,.5),
                 (-.5,.5),
@@ -34,23 +25,51 @@ noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds 
                 (-180,180),) # this is the rotation, can do whatever
 noise_bounds=[[0,0]]*6
 
-base_angles=np.arange(-3,4)*5 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
+base_angles=np.arange(-5,6)*5 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
+base_angles=[0]
+env_string='JacoCupsGazebo-v0' if SIM else 'BasicJacoEnv-v0'
+env = gym.make(env_string)
+#JacoStackCupsGazebo()
 
-for a in base_angles:
-    env.reset()
-    for p in points:
-        for _ in range(noise_samples):
-            loc=[]
-            for i in range(len(p)):
-                l,h=noise_bounds[i]
-                noise=np.random.random()*(h-l)+l
-                loc.append(p[i]+noise+(a if i==0 else 0))
-            env.move_arm(loc)
+if filename:
+    files=[filename+'.npy']
+else:
+    files=os.listdir('sample_points')
+for flnm in files:
+    aim=os.path.join('sample_points',flnm)
+    name=flnm[:flnm.index('.')]
+    
+    save_dir=os.path.join('img_data',
+                            'simulation' if SIM else 'real',
+                            name)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    
+    points=np.load(aim)
+    
+    for a in base_angles:
+        env.reset()
+        first=True
+        for p in points:
+            for _ in range(noise_samples):
+                if SIM:
+                    env.reset_cups()
+                loc=[]
+                for i in range(len(p)):
+                    l,h=noise_bounds[i]
+                    noise=np.random.random()*(h-l)+l
+                    loc.append(p[i]+noise+(a if i==0 else 0))
+                if first:
+                    loc_up=loc.copy()
+                    loc_up[1]=0
+                    env.move_arm(loc_up)
+                    first=False
+                env.move_arm(loc)
+                
+                for _ in range(finger_samples): # pinch/unpinch fingers a random amount
+                    fingy_pos=np.random.random()
+                    env.move_fingy(fingy_pos) 
+                    rospy.sleep(wait)
+                    t=str(time.time()).replace('.','_') # unique name
+                    env.save_image(os.path.join(save_dir,'base_angle_'+str(a).replace('.','_')+'_time_'+t+'.jpeg'))
             
-            for _ in range(finger_samples): # pinch/unpinch fingers a random amount
-                fingy_pos=np.random.random()
-                env.move_fingy(fingy_pos) 
-                rospy.sleep(wait)
-                t=str(time.time()).replace('.','_') # unique name
-                env.save_image(os.path.join(save_dir,t+'.jpeg'))
-        
