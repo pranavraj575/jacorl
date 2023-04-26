@@ -29,8 +29,11 @@ class JacoEnv(gym.Env):
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # maximum angular movement allowed at each joint per action
+                    image_dim=(256,256,3), # image vector, will resize input images to this
                     ):
     
+        self.image_dim=image_dim
+        
         self.action_dim=7
         self.obs_dim=self.get_obs_dim()
         self.init_pos=init_pos
@@ -208,6 +211,18 @@ class JacoEnv(gym.Env):
             
     def get_image_numpy(self):
         return ros_numpy.numpify(self.camera_img)
+    
+    def get_image_obs_array(self):
+        nump=self.get_image_numpy().astype(np.uint8)
+        resized=cv2.resize(nump, self.image_dim[:2], interpolation = cv2.INTER_AREA)
+        return resized.astype(np.float64)
+        
+    def get_image_obs_vector(self):
+        return self.get_image_obs_array().flatten()
+    
+    def get_image_obs_vector_dim(self):
+        return np.prod(self.image_dim)
+    
     
     def get_image_PIL(self):
         img_numpy=self.get_image_numpy()

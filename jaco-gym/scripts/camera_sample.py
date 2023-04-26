@@ -12,8 +12,11 @@ import time
 
 
 rospy.init_node("camera_sampler", log_level=rospy.INFO)
-filename=input('file name (without .npy, leave blank for all): ')
 SIM=True
+HAVE_CUPS=True
+print("IMPORTANT: HAVE_CUPS is",HAVE_CUPS,'this means','' if HAVE_CUPS else 'DONT' ,'PUT THE CUPS AROUND TABLE')
+print('ALSO, SIM is',SIM,'make sure this is correct, or save names will be annoying')
+filename=input('file name (without .npy, leave blank for all): ')
 finger_samples=3
 noise_samples=1
 wait=.3
@@ -23,10 +26,10 @@ noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds 
                 (-2,2),
                 (-1,1),
                 (-180,180),) # this is the rotation, can do whatever
-noise_bounds=[[0,0]]*6
+noise_bounds=[[0,0]]*6=5+[[-180,180]]
 
-base_angles=np.arange(-5,6)*5 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
-base_angles=[0]
+base_angles=np.arange(-2,4)*10 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
+
 env_string='JacoCupsGazebo-v0' if SIM else 'BasicJacoEnv-v0'
 env = gym.make(env_string)
 #JacoStackCupsGazebo()
@@ -41,6 +44,7 @@ for flnm in files:
     
     save_dir=os.path.join('img_data',
                             'simulation' if SIM else 'real',
+                            'POSITIVE' if HAVE_CUPS else 'NEGATIVE',
                             name)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
