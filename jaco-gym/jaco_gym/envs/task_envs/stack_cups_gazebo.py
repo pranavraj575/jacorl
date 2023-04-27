@@ -5,6 +5,7 @@ import numpy as np
 import rospy
 import random
 import math
+from scipy.spatial.transform import Rotation
 
 class JacoStackCupsGazebo(JacoEnv):
     def __init__(self,
