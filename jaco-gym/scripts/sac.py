@@ -82,6 +82,7 @@ def experiment(variant):
         **variant['algorithm_kwargs']
     )
     algorithm.to(ptu.device)
+    #algorithm._end_epoch(0)
     algorithm.train()
 
 if __name__ == "__main__":
@@ -110,7 +111,7 @@ if __name__ == "__main__":
             use_automatic_entropy_tuning=True,
         ),
     )
-    rospy.init_node("kinova_client", log_level=rospy.INFO)
+    rospy.init_node("sac_client")
     env_id = 'JacoCupsGazebo-v0'
     env = gym.make(env_id)
     env.reset()

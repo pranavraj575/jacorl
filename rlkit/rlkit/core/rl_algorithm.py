@@ -2,6 +2,7 @@ import abc
 from collections import OrderedDict
 
 import gtimer as gt
+import os
 
 from rlkit.core import logger, eval_util
 from rlkit.data_management.replay_buffer import ReplayBuffer
@@ -20,6 +21,9 @@ def _get_epoch_timings():
     times['time/total (s)'] = gt.get_times().total
     return times
 
+default_save_dir=os.path.join(os.getcwd(),'output')
+logger.set_snapshot_dir(default_save_dir)
+print("MADE outptu")
 
 class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
     def __init__(

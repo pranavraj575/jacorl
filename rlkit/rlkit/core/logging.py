@@ -311,10 +311,20 @@ class Logger(object):
         self._prefix_str = ''.join(self._prefixes)
 
     def save_itr_params(self, itr, params):
+        if not self._snapshot_dir:
+            print("WHAT")
+            print("WHY NOT")
+        if not osp.exists(self._snapshot_dir):
+            os.makedirs(self._snapshot_dir)
+            print("making DIRS:",self._snapshot_dir)
         if self._snapshot_dir:
             if self._snapshot_mode == 'all':
                 file_name = osp.join(self._snapshot_dir, 'itr_%d.pkl' % itr)
-                torch.save(params, file_name)
+                new_params={}
+                for name in params:
+                    if not name.endswith('/env'):
+                        new_params[name]=params[name]
+                torch.save(new_params, file_name)
             elif self._snapshot_mode == 'last':
                 # override previous params
                 file_name = osp.join(self._snapshot_dir, 'params.pkl')

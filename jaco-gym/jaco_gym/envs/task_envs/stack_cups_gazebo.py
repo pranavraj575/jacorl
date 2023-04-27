@@ -101,6 +101,10 @@ class JacoStackCupsGazebo(JacoEnv):
         max_tip_to_cup_dist = self.max_cup_x
         max_cup_to_goal_dist = self.max_cup_x - self.cup_goal_x
         for cup in cups:
+            if not cup in self.object_data:
+                obs=self.reset()
+                print("HOW DID WE GET HERE,",cup,'DOES NOT EXIST IN SIMULATION, RESTARTING')
+                return 0,False
             pos = self.object_data[cup].position
             # A cup fell off the table, end the episode
             if pos.z<-.1:
