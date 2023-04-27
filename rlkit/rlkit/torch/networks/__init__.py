@@ -20,12 +20,14 @@ from rlkit.torch.networks.mlp import (
 )
 from rlkit.torch.networks.pretrained_cnn import PretrainedCNN
 from rlkit.torch.networks.two_headed_mlp import TwoHeadMlp
+from rlkit.torch.networks.custom import CumNet
 
 __all__ = [
     'Clamp',
     'ConcatMlp',
     'ConcatMultiHeadedMlp',
     'ConcatTuple',
+    'CumNet',
     'BasicCNN',
     'CNN',
     'CNNPolicy',
