@@ -93,12 +93,12 @@ if __name__ == "__main__":
         replay_buffer_size=int(1E6),
         algorithm_kwargs=dict(
             num_epochs=3000,
-            num_eval_steps_per_epoch=5000,
-            num_trains_per_train_loop=1000,
-            num_expl_steps_per_train_loop=1000,
-            min_num_steps_before_training=1000,
-            max_path_length=1000,
-            batch_size=256,
+            num_eval_steps_per_epoch=2500, # num of steps that evaluation happens on
+            num_trains_per_train_loop=500, # number of times a batch of replay is selected for training
+            num_expl_steps_per_train_loop=500, # number of exploration steps taken per training loop
+            min_num_steps_before_training=1000, # fill replay buffer by this many steps before training
+            max_path_length=500, # episode ends after this many
+            batch_size=256, # batch size for training
         ),
         trainer_kwargs=dict(
             discount=0.99,

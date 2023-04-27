@@ -77,7 +77,7 @@ class JacoStackCupsGazebo(JacoEnv):
         return 21+3*6
 
     def get_reward_done(self):
-        debug=False
+        debug=True
         if debug:
             print("\n--------------------")
         tip_coord = self.get_cartesian_points()[-1][-1] # should be max extension of fingers
