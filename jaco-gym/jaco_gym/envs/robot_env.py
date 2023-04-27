@@ -141,13 +141,24 @@ class JacoEnv(gym.Env):
         obs=self.get_obs()
         return obs
         
+    #========================== OBSERVATION FUNCTIONS ============================#
+    
     def get_obs(self): # OVERWRITE THIS METHOD IN SUBCLASS
         pos,vel,eff= self.get_joint_state()
         return np.concatenate((pos%(2*np.pi),vel,eff)) #Mod position by 2pi since it is an angle
-        
+    
+    def get_full_obs(self): # appends camera vector to observation, prob no need to mess with this in subclass, since it calls get_obs
+        return np.concatenate(self.get_obs,self.get_image_obs_vector())
+    
     def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
         return 21
-
+    
+    def get_full_obs_dim(self): # probably not necessary to overwrite, since calls self.get_obs_dim
+        return self.get_obs_dim+self.get_image_obs_vector_dim()
+    
+    def get_full_obs_dim_split(self): # for ease of use, returns how the space should be split into (other stuff, camera encoding), and the dimensions to read the camera with
+        return (self.obs_dim(), self.get_image_obs_vector_dim()),self.image_dim
+    
     #========================== GETTING ROBOT INFO ============================#
 
     # Returns information about robot state that can be attained in both
@@ -223,7 +234,6 @@ class JacoEnv(gym.Env):
     
     def get_image_obs_vector_dim(self):
         return np.prod(self.image_dim)
-    
     
     def get_image_PIL(self):
         img_numpy=self.get_image_numpy()
