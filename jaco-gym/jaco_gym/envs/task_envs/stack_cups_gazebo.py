@@ -19,7 +19,7 @@ class JacoStackCupsGazebo(JacoEnv):
         self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
 
         # Ranges for randomizing cups and determining goal
-        self.table_y_range=(-0.29,0.29)
+        self.table_y_range=(-0.49,0.09)
         self.cup_ranges=((1.4,0.31),self.table_y_range)
         self.cup_goal_x = 0.3 # or above
         self.max_cup_x = self.cup_ranges[0][0]
