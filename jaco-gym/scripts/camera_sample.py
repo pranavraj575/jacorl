@@ -26,7 +26,7 @@ noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds 
                 (-2,2),
                 (-1,1),
                 (-180,180),) # this is the rotation, can do whatever
-noise_bounds=[[0,0]]*6=5+[[-180,180]]
+noise_bounds=[[0,0]]*5+[[-180,180]]
 
 base_angles=np.arange(-2,4)*10 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
 
