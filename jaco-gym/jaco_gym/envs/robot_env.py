@@ -22,6 +22,7 @@ from kortex_driver.srv import GetProductConfiguration, ValidateWaypointList,OnNo
 from kortex_driver.msg import ActionNotification, ActionEvent,Finger,GripperMode
 from sensor_msgs.msg import JointState, Image
 import ros_numpy
+import cv2
 
 class JacoEnv(gym.Env):
     def __init__(self,

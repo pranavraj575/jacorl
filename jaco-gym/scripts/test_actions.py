@@ -13,6 +13,7 @@ try:
     stuff=rostopic.get_topic_list()
 except: 
     raise Exception('ROS is not running, did u open either the gazebo simulator or the kortex driver (if real robot)? you could also just try waiting like 2 seconds before running this omg')
+    
 def recurse_search_str(thing,search):
     if thing is None: 
         return search is None
