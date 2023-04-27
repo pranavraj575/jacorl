@@ -26,11 +26,9 @@ class JacoStackCupsGazebo(JacoEnv):
         self.max_cup_x = self.cup_ranges[0][1]
 
         # Subscribe to object data to obtain cup locations
-        self.object_data={}
         def _call_model_data(data):
-            self.object_data={}
-            for i in range(len(data.name)):
-                self.object_data[data.name[i]] = data.pose[i]
+            self.object_data=data
+            
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
@@ -50,11 +48,14 @@ class JacoStackCupsGazebo(JacoEnv):
         return obs
     
     #========================= OBSERVATION, REWARD ============================#
+    def get_object_dict(self):
+        return {self.object_data.name[i]:self.object_data.pose[i] for i in range(len(self.object_data.name))}
     def get_pose_eulerian(self,name):
         # returns numpy array with pose of an object, includes x,y,z and eulerian rotation
-        position=self.object_data[name].position
+        obj_dict=self.get_object_dict()
+        position=obj_dict[name].position
         x,y,z=position.x,position.y,position.z
-        orientation=self.object_data[name].orientation
+        orientation=obj_dict[name].orientation
         (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
         return np.array([x,y,z,roll,pitch,yaw])
         
@@ -82,6 +83,7 @@ class JacoStackCupsGazebo(JacoEnv):
             print("\n--------------------")
         tip_coord = self.get_cartesian_points()[-1][-1] # should be max extension of fingers
         grabby_coord=self.get_cartesian_points()[-1][-2] # should be about where 'inside hand' is
+        obj_dict=self.get_object_dict()
         total_reward = 0
         if(self.robot_intersects_self()):
             print("Ending episode because robot is intersecting itself")
@@ -101,11 +103,11 @@ class JacoStackCupsGazebo(JacoEnv):
         max_tip_to_cup_dist = self.max_cup_x
         max_cup_to_goal_dist = self.max_cup_x - self.cup_goal_x
         for cup in cups:
-            if not cup in self.object_data:
+            if not cup in obj_dict:
                 obs=self.reset()
                 print("HOW DID WE GET HERE,",cup,'DOES NOT EXIST IN SIMULATION, RESTARTING')
                 return 0,False
-            pos = self.object_data[cup].position
+            pos = obj_dict[cup].position
             # A cup fell off the table, end the episode
             if pos.z<-.1:
                 print("Ending episode because a cup fell off the table")
