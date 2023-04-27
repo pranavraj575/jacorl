@@ -438,7 +438,7 @@ class JacoEnv(gym.Env):
             return False
         else:
             moved=self.wait_fingy_done(goal)
-            print('fingy moved:',moved)
+            #print('fingy moved:',moved)
             return True
 
     def wait_fingy_done(self,
