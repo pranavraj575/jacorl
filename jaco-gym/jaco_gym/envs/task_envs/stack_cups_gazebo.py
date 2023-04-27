@@ -50,23 +50,31 @@ class JacoStackCupsGazebo(JacoEnv):
         return obs
     
     #========================= OBSERVATION, REWARD ============================#
+    def get_pose_eulerian(self,name):
+        # returns numpy array with pose of an object, includes x,y,z and eulerian rotation
+        position=self.object_data[name].position
+        x,y,z=position.x,position.y,position.z
+        orientation=self.object_data[name].orientation
+        (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
+        return np.array([x,y,z,roll,pitch,yaw])
         
     def get_obs(self):
         # Observation is a concatination of our joint positions, joint velocities,
         # joint efforts, and the x,y,z coordinates of each of our 3 cups
-
-        print("good")
+        
+        #print("good")
         pos,vel,eff= self.get_joint_state()
         pos=pos%(2*np.pi) # MOD POSITION since it is an angle
-        cup1 = self.object_data["cup1"].position
-        cup2 = self.object_data["cup2"].position
-        cup3 = self.object_data["cup3"].position
-        cup_positions = np.array([cup1.x, cup1.y, cup1.z, cup2.x, cup2.y, cup2.z, cup3.z, cup3.y, cup3.z])
-        return np.concatenate((pos,vel,eff,cup_positions))
+        
+        object_names=['cup1','cup2','cup3']
+        
+        return np.concatenate([pos,vel,eff] +
+                                [self.get_pose_eulerian(name) for name in object_names]
+                                )
         
     def get_obs_dim(self):
         print("Here")
-        return 30
+        return 21+3*6
 
     def get_reward_done(self):
         print("\n--------------------")
@@ -166,7 +174,7 @@ class JacoStackCupsGazebo(JacoEnv):
         print("moving cups")
         # move cups to the randomized positions
         cup_names = ["cup1", "cup2", "cup3"]
-        for zs in [[-1]*3,[p[2] for p in positions]]:
+        for zs in [[-1.]*3,[p[2] for p in positions]]:
             for i in range(len(cup_names)):
                 model_state_msg = ModelState()
                 pose_msg = Pose()
@@ -189,16 +197,38 @@ class JacoStackCupsGazebo(JacoEnv):
                 rospy.sleep(.01)
     
     #========================= CUP INFORMATION ==========================#
+    def _inversion_check(self,name,tol=.02): 
+        # ignores rotation about z axis from starting position
+        # if object is not standing either upside down or the same as starting position, return -1
+        # if object is standing in the same position as start, return 0
+        # if object is upside down, return 1
+        (roll,pitch,yaw)=self.get_pose_eulerian(name)[3:]%(2*np.pi) # now only positives
+        roll_normal=bool(min(roll,abs(roll-2*np.pi))<=tol) # either roll is 0 or 2pi to make this true
+        roll_inversion=bool(abs(np.pi-roll)<=tol) # roll is pi to make this true
+        if not (roll_normal or roll_inversion):
+            return -1 # not standing up or inverted, fell over
+        
+        pitch_normal=bool(min(pitch,abs(pitch-2*np.pi))<=tol)
+        pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+        if not (pitch_normal or pitch_inversion):
+            return -1 # not standing up or inverted, fell over
+        return int(roll_inversion^pitch_inversion) #returns 1 if exactly one of these are true (i.e if cup is flipped once), 0 if inverted twice or nonce
+        
+        
+        
+        
+    def is_standing_up(self,name,tol=.02):
+        #returns if object is only rotated about z axis. (if the object is still standing in the same starting position)
+        return self._inversion_check(name,tol)==0
+        
+    def _is_upside_down(self,name):
+        #returns if object named name is flipped (ignoring rotation on z axis, if object is exactly upside down)
+        return self._inversion_check(name,tol)==1
     
-    def is_upside_down(self,orientation,tol=.02):
-            # Orientation is a Quaternion object (example: orientation = 
-            # self.doota['cup1'].orientation), will convert to roll, pitch, 
-            # yaw (rotation on x,y,z axis), ignore z axis and see if cup is 
-            # exactly upside down
-            (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
-            roll_inversion=bool(abs(np.pi-abs(roll))<=tol)
-            pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
-            return roll_inversion^pitch_inversion #returns if exactly one of these are true (i.e if cup is flipped once)
+    def _is_fallen_over(self,name):
+        #returns if object named name is fallen over
+        return self._inversion_check(name,tol)==-1
+        
 
     def cup_on_table(self,pos):
         return pos.z >= 0
