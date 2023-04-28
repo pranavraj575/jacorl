@@ -85,7 +85,10 @@ for flnm in files:
         for p in points:
             for _ in range(noise_samples):
                 if SIM:
-                    env.reset_cups(.8,.18,.02) # .8 standing, .18 upside down, .02 fallen
+                    if HAVE_CUPS:
+                        env.reset_cups(.8,.18,.02) # .8 standing, .18 upside down, .02 fallen
+                    else:
+                        env.move_cups(((-10.,0.,-.5),(-10.,-10.,-.5),(0.,-10.,-.5)))
                 loc=[]
                 for i in range(len(p)):
                     l,h=noise_bounds[i]
