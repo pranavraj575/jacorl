@@ -39,7 +39,7 @@ else:
 
 env = gym.make(env_id)
 
-HAVE_CUPS=True
+HAVE_CUPS=False
 print("IMPORTANT: HAVE_CUPS is",HAVE_CUPS,'this means','' if HAVE_CUPS else 'DONT' ,'PUT THE CUPS AROUND TABLE')
 print('ALSO, SIM is',SIM,'make sure this is correct, or save names will be annoying')
 filename=input('file name (without .npy, leave blank for all): ')
@@ -88,7 +88,7 @@ for flnm in files:
                     if HAVE_CUPS:
                         env.reset_cups(.8,.18,.02) # .8 standing, .18 upside down, .02 fallen
                     else:
-                        env.move_cups(((-10.,0.,-.5),(-10.,-10.,-.5),(0.,-10.,-.5)))
+                        env.move_cups(((-10.,-1.,-.5),(-10.,1.,-.7),(-10.,0.,-.9)))
                 loc=[]
                 for i in range(len(p)):
                     l,h=noise_bounds[i]
