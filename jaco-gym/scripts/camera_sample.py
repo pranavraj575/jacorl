@@ -44,7 +44,7 @@ print("IMPORTANT: HAVE_CUPS is",HAVE_CUPS,'this means','' if HAVE_CUPS else 'DON
 print('ALSO, SIM is',SIM,'make sure this is correct, or save names will be annoying')
 filename=input('file name (without .npy, leave blank for all): ')
 finger_samples=3
-noise_samples=10
+noise_samples=5
 wait=.3
 noise_bounds=(  (-5,5), #random movement of each joint chosen from these bounds , put 0,0 for none
                 (-.5,0),
