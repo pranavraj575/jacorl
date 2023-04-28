@@ -148,7 +148,7 @@ class JacoEnv(gym.Env):
         return np.concatenate((pos%(2*np.pi),vel,eff)) #Mod position by 2pi since it is an angle
     
     def get_full_obs(self): # appends camera vector to observation, prob no need to mess with this in subclass, since it calls get_obs
-        return np.concatenate(self.get_obs,self.get_image_obs_vector())
+        return np.concatenate(self.get_image_obs_vector(),self.get_obs())
     
     def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
         return 21
@@ -227,12 +227,25 @@ class JacoEnv(gym.Env):
     def get_image_obs_array(self):
         nump=self.get_image_numpy().astype(np.uint8)
         resized=cv2.resize(nump, self.image_dim[:2], interpolation = cv2.INTER_AREA)
+        resized=resized.transpose((2,1,0))# this changes order to [channels, height, width], which is used in CNNs
         return resized.astype(np.float64)
         
     def get_image_obs_vector(self):
         return self.get_image_obs_array().flatten()
+        
+    def recover_image_from_obs_vector(self,vector): # recovers image array (width, height, channels) from obs vector or image vector
+        # assumes first part of vector is flattened image in [channels, height, width] order
+        thingy=vector[:self.get_image_obs_vector_dim()].reshape(self.image_dim[::-1]) # in reverse, i.e. reshape(3,256,256)
+        thingy=thingy.transpose((2,1,0)) # flips to (width, height, channels)
+        return thingy
+        
+    def recover_images_from_obs_vectors(self,vectors): # recovers image arrays (M x width, height, channels) from obs vector or image vector (M X K)
+        M=len(vectors)
+        thingy=vector[:,:self.get_image_obs_vector_dim()].reshape((M,)+self.image_dim[::-1]) # in reverse, i.e. reshape(M,3,256,256)
+        thingy=thingy.transpose((0,3,2,1))# flips to (M, width, height, channels)
+        return thingy
     
-    def get_image_obs_vector_dim(self):
+    def get_image_obs_vector_dim(self): 
         return np.prod(self.image_dim)
     
     def get_image_PIL(self):
