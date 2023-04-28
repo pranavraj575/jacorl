@@ -54,11 +54,13 @@ noise_bounds=(  (-5,5), #random movement of each joint chosen from these bounds 
                 (-180,180),) # this is the rotation, can do whatever
 #noise_bounds=[[0,0]]*5+[[-180,180]]
 
-base_angles=np.arange(-2,4)*10 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
+base_angles=np.arange(0,5)*10 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
 
 env_string='JacoCupsGazebo-v0' if SIM else 'BasicJacoEnv-v0'
 env = gym.make(env_string)
 #JacoStackCupsGazebo()
+if SIM:
+    env.set_cup_ranges((0.0,1.),env.table_y_range)
 
 if filename:
     files=[filename+'.npy']

@@ -170,7 +170,8 @@ class JacoStackCupsGazebo(JacoEnv):
         return total_reward, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
-    
+    def set_cup_ranges(self,x_range,y_range):
+        self.cup_ranges=x_range,y_range
     def reset_cups(self,prob_stand=1,prob_flip=0,prob_other=0): # input the probabilities that the cups are spawned normal, flipped, or fallen
         #print("RESETTing")
         # generate random new cup positions
@@ -189,7 +190,7 @@ class JacoStackCupsGazebo(JacoEnv):
                 rot=tuple(np.random.random(2)*2*np.pi)+(0.,) # random numbers from 0 to 2pi for pitch and roll, prob gonna fall
             x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
             y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-            while self.cup_has_collision(x,y,cup_positions,tol=.08 if not yikes else .165):
+            while self.cup_has_collision(x,y,cup_positions+[[0.,0.,0.]],tol=.08 if not yikes else .165): # 0,0,0 for the robot arm
                 x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
                 y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
             cup_positions.append((x,y,.065 if not yikes else .1))
