@@ -3,7 +3,6 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 from jaco_gym.envs.robot_env import JacoEnv
 import numpy as np
 import rospy
-import random
 import math
 from scipy.spatial.transform import Rotation
 
@@ -172,29 +171,34 @@ class JacoStackCupsGazebo(JacoEnv):
     
     #========================= RESETTING ENVIRONMENT ==========================#
     
-    def reset_cups(self):
+    def reset_cups(self,prob_stand=1,prob_flip=0,prob_other=0): # input the probabilities that the cups are spawned normal, flipped, or fallen
         #print("RESETTing")
         # generate random new cup positions
         cup_names = ["cup1", "cup2", "cup3"]
         cup_positions = []
+        cup_rotations=[]
         for i in range(len(cup_names)):
-            x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
-            y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-            while(self.cup_has_collision(x,y,cup_positions)):
-                x = random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
-                y = random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-            cup_positions.append((x,y,.065))
-        self.move_cups(cup_positions)
+            arr=np.random.random()
+            yikes=False
+            if arr<prob_stand:
+                rot=(0.,0.,0.)
+            elif arr<prob_stand+prob_flip:
+                rot=(0.,np.pi,0.)
+            else:
+                yikes=True
+                rot=tuple(np.random.random(2)*2*np.pi)+(0.,) # random numbers from 0 to 2pi for pitch and roll, prob gonna fall
+            x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
+            y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
+            while self.cup_has_collision(x,y,cup_positions,tol=.08 if not yikes else .165):
+                x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
+                y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
+            cup_positions.append((x,y,.065 if not yikes else .1))
+            cup_rotations.append(rot)
+        self.move_cups(cup_positions,cup_rotations)
     
     # To make sure random cup locations do not intersect
     def cup_has_collision(self,x,y,cup_positions,tol=.08):
-        for pos in cup_positions:
-            x2 = pos[0]
-            y2 = pos[1]
-            dist = math.sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y))
-            if(dist <= tol):
-                return True
-        return False
+        return any([np.linalg.norm((pos[0]-x,pos[1]-y)) <= tol for pos in cup_positions]) # any are within tolerance
     
     def move_cups(self, positions,orientations=None):
         #print("moving cups")

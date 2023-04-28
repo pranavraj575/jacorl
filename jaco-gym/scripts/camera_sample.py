@@ -4,6 +4,7 @@ import numpy as np
 import rospy
 import os
 import time
+import rostopic
 # from stable_baselines.common.env_checker import check_env
 
 # first launch Jaco in Gazebo with
@@ -12,21 +13,46 @@ import time
 
 
 rospy.init_node("camera_sampler", log_level=rospy.INFO)
-SIM=True
+
+
+try:
+    stuff=rostopic.get_topic_list()
+except: 
+    raise Exception('ROS is not running, did u open either the gazebo simulator or the kortex driver (if real robot)? you could also just try waiting like 2 seconds before running this omg')
+    
+def recurse_search_str(thing,search):
+    if thing is None: 
+        return search is None
+    if type(thing)==str:
+        return search in thing
+    return any([recurse_search_str(t,search) for t in thing])
+
+if recurse_search_str(stuff,'gazebo'):
+    env_id='JacoCupsGazebo-v0'
+    print("SIMULATION DETECTED, using env",env_id)
+    SIM=True
+else:
+    env_id='BasicJacoEnv-v0'
+    print("SIMULATION NOT DETECTED, using env",env_id)
+    SIM=False
+          
+
+env = gym.make(env_id)
+
 HAVE_CUPS=True
 print("IMPORTANT: HAVE_CUPS is",HAVE_CUPS,'this means','' if HAVE_CUPS else 'DONT' ,'PUT THE CUPS AROUND TABLE')
 print('ALSO, SIM is',SIM,'make sure this is correct, or save names will be annoying')
 filename=input('file name (without .npy, leave blank for all): ')
 finger_samples=3
-noise_samples=1
+noise_samples=10
 wait=.3
-noise_bounds=(  (-2,2), #random movement of each joint chosen from these bounds , put 0,0 for none
-                (-.5,.5),
-                (-.5,.5),
-                (-2,2),
+noise_bounds=(  (-5,5), #random movement of each joint chosen from these bounds , put 0,0 for none
+                (-.5,0),
+                (0,.5),
+                (-1,1),
                 (-1,1),
                 (-180,180),) # this is the rotation, can do whatever
-noise_bounds=[[0,0]]*5+[[-180,180]]
+#noise_bounds=[[0,0]]*5+[[-180,180]]
 
 base_angles=np.arange(-2,4)*10 # the angles to add to the base rotation, since all of our samples should be along a line, this multiplies data points by number of angles of base of arm
 
@@ -57,7 +83,7 @@ for flnm in files:
         for p in points:
             for _ in range(noise_samples):
                 if SIM:
-                    env.reset_cups()
+                    env.reset_cups(.8,.18,.02) # .8 standing, .18 upside down, .02 fallen
                 loc=[]
                 for i in range(len(p)):
                     l,h=noise_bounds[i]
