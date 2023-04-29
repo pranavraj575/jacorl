@@ -70,12 +70,12 @@ for flnm in files:
     aim=os.path.join('sample_points',flnm)
     name=flnm[:flnm.index('.')]
     
-    save_dir=os.path.join('img_data',
+    save_dir=os.path.join('Image-Data',
                             'simulation' if SIM else 'real',
                             'POSITIVE' if HAVE_CUPS else 'NEGATIVE',
                             name)
     if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+        raise Exception("DIRECTORY",save_dir,"DOES NOT EXIST, call \"git clone https://github.com/sophiazalewski1/Image-Data\"")
     
     points=np.load(aim)
     
