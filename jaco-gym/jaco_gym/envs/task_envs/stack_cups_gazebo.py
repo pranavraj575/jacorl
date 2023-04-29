@@ -12,9 +12,10 @@ class JacoStackCupsGazebo(JacoEnv):
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
+                    image_dim=(256,256,3), # image vector, will resize input images to this
                     ):
                     
-        super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences)
+        super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences,image_dim)
         self.pub_topic = '/gazebo/set_model_state'
         self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
 

@@ -13,3 +13,10 @@ register(
     entry_point='jaco_gym.envs.task_envs.stack_cups_gazebo:JacoStackCupsGazebo',
     max_episode_steps=50
 )
+
+# cup stacky simulation with images
+register(
+    id='JacoCupsGazeboImg-v0',
+    entry_point='jaco_gym.envs.task_envs.stack_cups_gazebo_img:JacoStackCupsGazebo',
+    max_episode_steps=50
+)
