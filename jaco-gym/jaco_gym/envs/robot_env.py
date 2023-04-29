@@ -148,7 +148,7 @@ class JacoEnv(gym.Env):
         return np.concatenate((pos%(2*np.pi),vel,eff)) #Mod position by 2pi since it is an angle
     
     def get_full_obs(self): # appends camera vector to observation, prob no need to mess with this in subclass, since it calls get_obs
-        return np.concatenate(self.get_image_obs_vector(),self.get_obs())
+        return np.concatenate((self.get_image_obs_vector(),self.get_obs()))
     
     def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
         return 21
