@@ -16,7 +16,7 @@ from rlkit.torch.sac.policies import TanhCNNGaussianPolicy, MakeDeterministic
 from rlkit.torch.sac.sac import SACTrainer
 from rlkit.torch.networks import CNN
 from rlkit.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
-
+import os
 
 def experiment(variant):
     expl_env = JacoStackCupsGazeboImg() #NormalizedBoxEnv(HalfCheetahEnv())
@@ -140,6 +140,7 @@ def experiment(variant):
         replay_buffer=replay_buffer,
         **variant['algorithm_kwargs']
     )
+    algorithm.set_output_dir(os.path.join(os.getcwd(),'cloutput/CNNTest'))
     algorithm.to(ptu.device)
     #algorithm._end_epoch(0)
     algorithm.train()

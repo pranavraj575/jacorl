@@ -4,9 +4,10 @@ from collections import OrderedDict
 import gtimer as gt
 import os
 
-from rlkit.core import logger, eval_util
+from rlkit.core import Logger, eval_util
 from rlkit.data_management.replay_buffer import ReplayBuffer
 from rlkit.samplers.data_collector import DataCollector
+import os
 
 
 def _get_epoch_timings():
@@ -20,10 +21,6 @@ def _get_epoch_timings():
     times['time/epoch (s)'] = epoch_time
     times['time/total (s)'] = gt.get_times().total
     return times
-
-default_save_dir=os.path.join(os.getcwd(),'output')
-logger.set_snapshot_dir(default_save_dir)
-print("MADE outptu")
 
 class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
     def __init__(
@@ -44,7 +41,15 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         self._start_epoch = 0
 
         self.post_epoch_funcs = []
-
+        
+        self.logger=Logger()
+        
+    def set_output_dir(self,direct):
+        if not os.path.exists(direct):
+            print('MAKING DIRECTORY:',direct)
+            os.makedirs(direct)
+        self.logger.set_snapshot_dir(direct)
+        
     def train(self, start_epoch=0):
         self._start_epoch = start_epoch
         self._train()
@@ -60,7 +65,7 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
 
     def _end_epoch(self, epoch):
         snapshot = self._get_snapshot()
-        logger.save_itr_params(epoch, snapshot)
+        self.logger.save_itr_params(epoch, snapshot)
         gt.stamp('saving')
         self._log_stats(epoch)
 
@@ -85,13 +90,13 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         return snapshot
 
     def _log_stats(self, epoch):
-        logger.log("Epoch {} finished".format(epoch), with_timestamp=True)
-        logger.record_dict({"epoch": epoch})
+        self.logger.log("Epoch {} finished".format(epoch), with_timestamp=True)
+        self.logger.record_dict({"epoch": epoch})
 
         """
         Replay Buffer
         """
-        logger.record_dict(
+        self.logger.record_dict(
             self.replay_buffer.get_diagnostics(),
             prefix='replay_buffer/'
         )
@@ -99,39 +104,39 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         """
         Trainer
         """
-        logger.record_dict(self.trainer.get_diagnostics(), prefix='trainer/')
+        self.logger.record_dict(self.trainer.get_diagnostics(), prefix='trainer/')
 
         """
         Exploration
         """
-        logger.record_dict(
+        self.logger.record_dict(
             self.expl_data_collector.get_diagnostics(),
             prefix='expl/'
         )
         expl_paths = self.expl_data_collector.get_epoch_paths()
         if hasattr(self.expl_env, 'get_diagnostics'):
-            logger.record_dict(
+            self.logger.record_dict(
                 self.expl_env.get_diagnostics(expl_paths),
                 prefix='expl/',
             )
-        logger.record_dict(
+        self.logger.record_dict(
             eval_util.get_generic_path_information(expl_paths),
             prefix="expl/",
         )
         """
         Evaluation
         """
-        logger.record_dict(
+        self.logger.record_dict(
             self.eval_data_collector.get_diagnostics(),
             prefix='eval/',
         )
         eval_paths = self.eval_data_collector.get_epoch_paths()
         if hasattr(self.eval_env, 'get_diagnostics'):
-            logger.record_dict(
+            self.logger.record_dict(
                 self.eval_env.get_diagnostics(eval_paths),
                 prefix='eval/',
             )
-        logger.record_dict(
+        self.logger.record_dict(
             eval_util.get_generic_path_information(eval_paths),
             prefix="eval/",
         )
@@ -140,9 +145,9 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         Misc
         """
         gt.stamp('logging')
-        logger.record_dict(_get_epoch_timings())
-        logger.record_tabular('Epoch', epoch)
-        logger.dump_tabular(with_prefix=False, with_timestamp=False)
+        self.logger.record_dict(_get_epoch_timings())
+        self.logger.record_tabular('Epoch', epoch)
+        self.logger.dump_tabular(with_prefix=False, with_timestamp=False)
 
     @abc.abstractmethod
     def training_mode(self, mode):
