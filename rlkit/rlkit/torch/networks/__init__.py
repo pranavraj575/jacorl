@@ -6,7 +6,7 @@ Algorithm-specific networks should go else-where.
 from rlkit.torch.networks.basic import (
     Clamp, ConcatTuple, Detach, Flatten, FlattenEach, Split, Reshape,
 )
-from rlkit.torch.networks.cnn import BasicCNN, CNN, MergedCNN, CNNPolicy
+from rlkit.torch.networks.cnn import BasicCNN, CNN, MergedCNN, CNNPolicy, ConcatCNN
 from rlkit.torch.networks.dcnn import DCNN, TwoHeadDCNN
 from rlkit.torch.networks.feat_point_mlp import FeatPointMlp
 from rlkit.torch.networks.image_state import ImageStatePolicy, ImageStateQ
@@ -31,6 +31,7 @@ __all__ = [
     'BasicCNN',
     'CNN',
     'CNNPolicy',
+    'ConcatCNN',
     'DCNN',
     'Detach',
     'FeatPointMlp',

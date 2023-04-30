@@ -14,7 +14,7 @@ from rlkit.launchers.launcher_util import setup_logger
 from rlkit.samplers.data_collector import MdpPathCollector
 from rlkit.torch.sac.policies import TanhCNNGaussianPolicy, MakeDeterministic
 from rlkit.torch.sac.sac import SACTrainer
-from rlkit.torch.networks import CNN
+from rlkit.torch.networks import ConcatCNN
 from rlkit.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
 import os
 
@@ -26,7 +26,8 @@ def experiment(variant):
 
     width,height,channels=expl_env.image_dim
     M = variant['layer_size']
-    qf1 = CNN(
+    #concat since the input looks like (obs, action) with two thingies
+    qf1 = ConcatCNN( 
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -42,7 +43,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    qf2 = CNN(
+    qf2 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -58,7 +59,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    target_qf1 = CNN(
+    target_qf1 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -74,7 +75,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    target_qf2 = CNN(
+    target_qf2 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
