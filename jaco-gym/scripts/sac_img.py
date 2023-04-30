@@ -24,7 +24,7 @@ def experiment(variant):
     obs_dim = expl_env.observation_space.low.size
     action_dim = eval_env.action_space.low.size
 
-    width,height,channels=expl_env.img_dim
+    width,height,channels=expl_env.image_dim
     M = variant['layer_size']
     qf1 = CNN(
             input_width=width,
@@ -43,10 +43,52 @@ def experiment(variant):
             pool_paddings=[0,0,0],
     )
     qf2 = CNN(
+            input_width=width,
+            input_height=height,
+            input_channels=channels,
+            output_size=1,
+            kernel_sizes=[3,3,4],
+            n_channels=[32,64,128],
+            strides=[2,2,2],
+            paddings=[0,0,0],
+            hidden_sizes=[M, M],
+            added_fc_input_size = obs_dim + action_dim - width*height*channels, # since these elements will be the image
+            pool_type='max2d',
+            pool_sizes=[2,2,2],
+            pool_strides=[2,2,2],
+            pool_paddings=[0,0,0],
     )
     target_qf1 = CNN(
+            input_width=width,
+            input_height=height,
+            input_channels=channels,
+            output_size=1,
+            kernel_sizes=[3,3,4],
+            n_channels=[32,64,128],
+            strides=[2,2,2],
+            paddings=[0,0,0],
+            hidden_sizes=[M, M],
+            added_fc_input_size = obs_dim + action_dim - width*height*channels, # since these elements will be the image
+            pool_type='max2d',
+            pool_sizes=[2,2,2],
+            pool_strides=[2,2,2],
+            pool_paddings=[0,0,0],
     )
     target_qf2 = CNN(
+            input_width=width,
+            input_height=height,
+            input_channels=channels,
+            output_size=1,
+            kernel_sizes=[3,3,4],
+            n_channels=[32,64,128],
+            strides=[2,2,2],
+            paddings=[0,0,0],
+            hidden_sizes=[M, M],
+            added_fc_input_size = obs_dim + action_dim - width*height*channels, # since these elements will be the image
+            pool_type='max2d',
+            pool_sizes=[2,2,2],
+            pool_strides=[2,2,2],
+            pool_paddings=[0,0,0],
     )
     policy = TanhCNNGaussianPolicy(
             
@@ -108,7 +150,7 @@ if __name__ == "__main__":
         algorithm="SAC",
         version="normal",
         layer_size=256,
-        replay_buffer_size=int(1E6),
+        replay_buffer_size=int(1E4), # CHANGED: shrink because too big
         algorithm_kwargs=dict(
             num_epochs=3000,
             num_eval_steps_per_epoch=2500, # num of steps that evaluation happens on

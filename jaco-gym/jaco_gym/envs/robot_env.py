@@ -30,7 +30,7 @@ class JacoEnv(gym.Env):
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # maximum angular movement allowed at each joint per action
-                    image_dim=(256,256,3), # image vector, will resize input images to this
+                    image_dim=(128,128,3), # image vector, will resize input images to this
                     ):
     
         self.image_dim=image_dim
