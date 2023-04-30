@@ -153,11 +153,6 @@ class JacoEnv(gym.Env):
     def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
         return 21
     
-    def get_full_obs_dim(self): # probably not necessary to overwrite, since calls self.get_obs_dim
-        return self.get_obs_dim+self.get_image_obs_vector_dim()
-    
-    def get_full_obs_dim_split(self): # for ease of use, returns how the space should be split into (other stuff, camera encoding), and the dimensions to read the camera with
-        return (self.obs_dim(), self.get_image_obs_vector_dim()),self.image_dim
     
     #========================== GETTING ROBOT INFO ============================#
 
