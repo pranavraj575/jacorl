@@ -145,7 +145,11 @@ class Logger(object):
         if self._tabular_fds[file_name] in self._tabular_header_written:
             self._tabular_header_written.remove(self._tabular_fds[file_name])
         self._remove_output(file_name, self._tabular_outputs, self._tabular_fds)
-
+    
+    def set_tabular_dir(self,dir_name):
+        fn=os.path.join(dir_name,'record.csv')
+        self._tabular_fds.update({fn:open(fn,'w')})
+    
     def set_snapshot_dir(self, dir_name):
         self._snapshot_dir = dir_name
 

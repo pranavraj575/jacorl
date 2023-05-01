@@ -36,30 +36,10 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
             print("DELETING:",self.save_dir)
             self._clear_all_from_mem()
             history=[] # newly initialized
-        
         self._file_history=deque(history,maxlen=self._max_replay_buffer_size)
-        
-        #self._observations = np.zeros((max_replay_buffer_size, observation_dim))
-        # It's a bit memory inefficient to save the observations twice,
-        # but it makes the code *much* easier since you no longer have to
-        # worry about termination conditions.
-        #self._next_obs = np.zeros((max_replay_buffer_size, observation_dim))
-        #self._actions = np.zeros((max_replay_buffer_size, action_dim))
-        # Make everything a 2D np array to make it easier for other code to
-        # reason about the shape of the data
-        #self._rewards = np.zeros((max_replay_buffer_size, 1))
-        # self._terminals[i] = a terminal was received at time i
-        #self._terminals = np.zeros((max_replay_buffer_size, 1), dtype='uint8')
-        # Define self._env_infos[key][i] to be the return value of env_info[key]
-        # at time i
-        #self._env_infos = {}
-        #for key, size in env_info_sizes.items():
-        #    self._env_infos[key] = np.zeros((max_replay_buffer_size, size))
+        self._size=len(self._file_history)
         self._env_info_keys = list(env_info_sizes.keys())
         self._replace = replace
-
-        #self._top = 0
-        self._size = 0
     
     def _clear_from_mem(self,filee):
         os.remove(os.path.join(self.save_dir,filee))
@@ -72,7 +52,7 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
     
     def add_sample(self, observation, action, reward, next_observation,
                    terminal, env_info, **kwargs):
-        name=str(time.time).replace('.','_')+'.npz'
+        name=str(time.time()).replace('.','_')+'.npz'
         np.savez(os.path.join(self.save_dir,name),
                   observation=observation,
                   action=action.reshape(-1), # makes these arrays, so dimensionality is consistent
@@ -80,7 +60,6 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
                   next_observation=next_observation,
                   terminal=terminal.reshape(-1),
                   env_info=env_info)
-        
         if self._size < self._max_replay_buffer_size:
             self._size += 1
         else:
@@ -127,7 +106,7 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
         for index in indices:
             fn=os.path.join(self.save_dir,self._file_history[index])
             f=np.load(fn,allow_pickle=True)
-            obs,a,r,term,obs_p,e_info=f['observation'],f['action'],f['reward'],f['terminal'],f['next_observation'],f['env_info'][0]
+            obs,a,r,term,obs_p,e_info=f['observation'],f['action'],f['reward'],f['terminal'],f['next_observation'],f['env_info']
             # note we index env_info since it is a dict, so it is saved as an object array
             OBS.append(obs)
             A.append(a)
@@ -135,7 +114,7 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
             TERM.append(term)
             OBS_P.append(obs_p)
             for key in self._env_info_keys:
-                dict_stuff[key].append(e_info[key])
+                dict_stuff[key].append(e_info[0][key])
         batch=dict(
             observations=np.array(OBS),
             actions=np.array(A),

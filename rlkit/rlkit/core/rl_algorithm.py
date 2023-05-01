@@ -45,10 +45,12 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         self.logger=Logger()
         
     def set_output_dir(self,direct):
-        if not os.path.exists(direct):
-            print('MAKING DIRECTORY:',direct)
-            os.makedirs(direct)
-        self.logger.set_snapshot_dir(direct)
+        snap_dir=os.path.join(direct,'models')
+        if not os.path.exists(snap_dir):
+            print('MAKING DIRECTORY:',snap_dir)
+            os.makedirs(snap_dir)
+        self.logger.set_tabular_dir(direct)
+        self.logger.set_snapshot_dir(snap_dir)
         
     def train(self, start_epoch=0):
         self._start_epoch = start_epoch

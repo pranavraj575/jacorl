@@ -142,7 +142,7 @@ def experiment(variant):
         replay_buffer=replay_buffer,
         **variant['algorithm_kwargs']
     )
-    algorithm.set_output_dir(os.path.join(variant['save_dir'],'models'))
+    algorithm.set_output_dir(variant['save_dir'])
     algorithm.to(ptu.device)
     #algorithm._end_epoch(0)
     algorithm.train()
@@ -150,7 +150,7 @@ def experiment(variant):
 if __name__ == "__main__":
     # noinspection PyTypeChecker
     variant = dict(
-        save_dir=os.path.join(os.getcwd(),'cloutput/CNNTest')
+        save_dir=os.path.join(os.getcwd(),'cloutput/CNNTest'),
         algorithm="SAC",
         version="normal",
         layer_size=256,
