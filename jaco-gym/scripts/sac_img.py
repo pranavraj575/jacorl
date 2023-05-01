@@ -5,7 +5,7 @@ import random
 import numpy as np 
 import rospy
 import rlkit.torch.pytorch_util as ptu
-from rlkit.data_management.env_replay_buffer import EnvReplayBuffer
+from rlkit.data_management.env_replay_buffer import SlowEnvReplayBuffer
 #from rlkit.envs.wrappers import NormalizedBoxEnv
 #from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
 from jaco_gym.envs.task_envs.stack_cups_gazebo_img import JacoStackCupsGazeboImg
@@ -14,9 +14,9 @@ from rlkit.launchers.launcher_util import setup_logger
 from rlkit.samplers.data_collector import MdpPathCollector
 from rlkit.torch.sac.policies import TanhCNNGaussianPolicy, MakeDeterministic
 from rlkit.torch.sac.sac import SACTrainer
-from rlkit.torch.networks import CNN
+from rlkit.torch.networks import ConcatCNN
 from rlkit.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
-
+import os
 
 def experiment(variant):
     expl_env = JacoStackCupsGazeboImg() #NormalizedBoxEnv(HalfCheetahEnv())
@@ -26,7 +26,8 @@ def experiment(variant):
 
     width,height,channels=expl_env.image_dim
     M = variant['layer_size']
-    qf1 = CNN(
+    #concat since the input looks like (obs, action) with two thingies
+    qf1 = ConcatCNN( 
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -42,7 +43,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    qf2 = CNN(
+    qf2 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -58,7 +59,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    target_qf1 = CNN(
+    target_qf1 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -74,7 +75,7 @@ def experiment(variant):
             pool_strides=[2,2,2],
             pool_paddings=[0,0,0],
     )
-    target_qf2 = CNN(
+    target_qf2 = ConcatCNN(
             input_width=width,
             input_height=height,
             input_channels=channels,
@@ -118,9 +119,10 @@ def experiment(variant):
         expl_env,
         policy,
     )
-    replay_buffer = EnvReplayBuffer(
+    replay_buffer = SlowEnvReplayBuffer(
         variant['replay_buffer_size'],
         expl_env,
+        directory=os.path.join(variant['save_dir'],'replay_buff')
     )
     trainer = SACTrainer(
         env=eval_env,
@@ -140,6 +142,7 @@ def experiment(variant):
         replay_buffer=replay_buffer,
         **variant['algorithm_kwargs']
     )
+    algorithm.set_output_dir(os.path.join(variant['save_dir'],'models'))
     algorithm.to(ptu.device)
     #algorithm._end_epoch(0)
     algorithm.train()
@@ -147,10 +150,11 @@ def experiment(variant):
 if __name__ == "__main__":
     # noinspection PyTypeChecker
     variant = dict(
+        save_dir=os.path.join(os.getcwd(),'cloutput/CNNTest')
         algorithm="SAC",
         version="normal",
         layer_size=256,
-        replay_buffer_size=int(1E4), # CHANGED: shrink because too big
+        replay_buffer_size=int(1E6), # CHANGED: shrink because too big
         algorithm_kwargs=dict(
             num_epochs=3000,
             num_eval_steps_per_epoch=2500, # num of steps that evaluation happens on
