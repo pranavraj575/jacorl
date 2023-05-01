@@ -29,9 +29,9 @@ class ComplexReplayBuffer(ReplayBuffer): # saves on disk instead, slower access 
             os.makedirs(self.save_dir)
             history=[] #newly initialized
         elif reload_dir: # reload the directory in this case
-            print("RELOADING BUFFER FROM:",self.save_dir)
             history=os.listdir(self.save_dir)
             history.sort() # since they are ordered by time
+            print("RELOADING BUFFER OF SIZE",len(history),"FROM:",self.save_dir)
         else:
             print("DELETING:",self.save_dir)
             self._clear_all_from_mem()
