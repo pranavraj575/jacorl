@@ -1,3 +1,7 @@
+################################################################################
+###| GET_IMAGE_DATA.PY - saves camera image data from robot                 |###
+################################################################################
+
 import gym
 import jaco_gym
 import random
@@ -36,4 +40,3 @@ def capture_img(id):
 #         capture_img(str(t))
 
 # env.close()
-
