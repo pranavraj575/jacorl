@@ -1,3 +1,7 @@
+################################################################################
+###| ENV_RESET_TEST.PY - test if environment reset works properly           |###
+################################################################################
+
 import gym
 import jaco_gym
 import random
