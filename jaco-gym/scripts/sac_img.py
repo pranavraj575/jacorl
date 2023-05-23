@@ -1,4 +1,10 @@
-#from gym.envs.mujoco import HalfCheetahEnv
+################################################################################
+###| SAC_IMG.PY - Runs Soft Actor Critic RL training on your enviornment    |###
+###|            - model framework from rlkit directory                      |###
+###|            - modified to take in a camera image along with robot       |###
+###|              joint data as the observation, runs image through CNN     |###
+################################################################################
+
 import gym
 import jaco_gym
 import random
@@ -6,8 +12,6 @@ import numpy as np
 import rospy
 import rlkit.torch.pytorch_util as ptu
 from rlkit.data_management.env_replay_buffer import SlowEnvReplayBuffer
-#from rlkit.envs.wrappers import NormalizedBoxEnv
-#from jaco_gym.envs.jaco_gazebo_action_env import JacoEnv #Added this line
 from jaco_gym.envs.task_envs.stack_cups_gazebo_img import JacoStackCupsGazeboImg
 
 from rlkit.launchers.launcher_util import setup_logger
