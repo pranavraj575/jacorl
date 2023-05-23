@@ -1,8 +1,3 @@
-################################################################################
-###| CAMERA_SAMPLE.PY - runs robot through captured joint coordinates       |###
-###|      and records camera images at each loctation for CycleGAN training |###
-################################################################################
-
 import gym
 import jaco_gym
 import numpy as np 

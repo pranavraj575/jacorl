@@ -1,9 +1,3 @@
-################################################################################
-###| LIMP.PY - script to make the physical robot go "limp"                  |###
-###|         - used for being able to manually move a robot to a specific   |###
-###|           position w/o resistence from the joints                      |###
-################################################################################
-
 import gym
 import jaco_gym
 import random
