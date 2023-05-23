@@ -1,3 +1,10 @@
+################################################################################
+###| RECORD_POINTS.PY - script we used to record joint positions on the     |###
+###|         pysical robot in a variety of poistions so we could run a      |###
+###|         camera capture script on those points in the real world + sim  |###
+###|       - Used to generate real and sim image training data for CycleGAN |###
+################################################################################
+
 import gym
 import jaco_gym
 import numpy as np 
