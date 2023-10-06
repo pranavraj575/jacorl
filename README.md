@@ -68,7 +68,7 @@ sudo apt-get install -y ros-<distro>-joint-trajectory-controller
 sudo apt-get install -y ros-<distro>-controller-*
 sudo apt-get install -y ros-<dist>-rgbd-launch
 ```
-(replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
+(replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
 
 #### 3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment), with [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src
 Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
@@ -110,7 +110,7 @@ rosdep update
 rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 ```
 
-(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
+(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `noetic` or `melodic`)
 
 
 #### 6. Install the ROS packages and build.
@@ -163,7 +163,7 @@ In terminal 3, run the python script to test robot actions:
 python3 src/jaco-gym/scripts/test_actions.py
 ```
 
-### For the arm in Gazebo (tested on ROS Melodic and Kinetic)
+### For the arm in Gazebo (tested on ROS Melodic and Noetic)
 
 In terminal 1, cd into the ros-kortex directory and launch the simulated robot environment:
 ```bash
