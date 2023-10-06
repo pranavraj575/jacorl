@@ -36,6 +36,8 @@ Camera capture from the simulated robot (left), and bounding box of joint on the
 
 ## Installation
 
+WARNING: THIS DOES NOT WORK WITH CONDA! deactivate it or uninstall it first
+
 #### 1. Install [ROS](http://wiki.ros.org/ROS/Installation) (if it is not already installed)
 
 * ROS Melodic on Ubuntu 18.04
