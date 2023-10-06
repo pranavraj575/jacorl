@@ -82,6 +82,9 @@ pip3 install -e .
 cd ../ros_numpy
 pip3 install -e .
 ```
+
+Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
+
 #### 4. Clone the correct branch of ros_kortex, and copy files over (`<branch-name>` should look like `noetic-devel`)
 ```bash
 cd ~/catkin_ws/src
