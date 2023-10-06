@@ -36,6 +36,8 @@ Camera capture from the simulated robot (left), and bounding box of joint on the
 
 ## Installation
 
+Note: all commands to run for installation should be on this page, with the exception of step 1 (installing ROS). The hyperlinks are just for more information/if any errors occur
+
 WARNING: THIS DOES NOT WORK WITH CONDA! deactivate it or uninstall it first
 
 #### 1. Install [ROS](http://wiki.ros.org/ROS/Installation) (if it is not already installed)
@@ -87,7 +89,7 @@ pip3 install -e .
 
 Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
 
-#### 4. Clone the correct branch of ros_kortex, and copy files over (`<branch-name>` should look like `noetic-devel`)
+#### 4. Clone the correct branch of [ros_kortex](https://github.com/Kinovarobotics/ros_kortex), and copy files over (`<branch-name>` should look like `noetic-devel`)
 ```bash
 cd ~/catkin_ws/src
 git clone -b <branch-name> https://github.com/Kinovarobotics/ros_kortex.git
