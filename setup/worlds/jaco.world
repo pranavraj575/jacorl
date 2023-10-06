@@ -1,0 +1,57 @@
+
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  
+  <world name="default">
+    <include>
+      <uri>model://ground_plane</uri>
+      <pose>0 0 -1.035 0 0 0</pose>
+    </include>
+    
+    <include>
+      <uri>model://fable</uri>
+      <pose>.75 -0.2 -1.035 0 0 0</pose>
+      <static>true</static>
+    </include>
+
+    <model name="cup1">
+        <include>
+          <static>false</static>
+          <uri>model://solo_cup</uri>
+          <pose>0 0 -0.007 0 0 0</pose>
+        </include>
+    </model>
+    <model name="cup2">
+        <include>
+          <static>false</static>
+          <uri>model://solo_cup</uri>
+          <pose>0 0 -0.007 0 0 0</pose>
+        </include>
+    </model>
+    <model name="cup3">
+        <include>
+          <static>false</static>
+          <uri>model://solo_cup</uri>
+          <pose>0 0 -0.007 0 0 0</pose>
+        </include>
+    </model>
+    
+    <!-- Global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- Focus camera on tall pendulum -->
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>2.927360 -2.376610 1.740080 0.000000 0.375643 2.356190</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+
+    
+    <plugin name="physics_plugin" filename="libgazebo_physics_plugin.so"/>
+
+  </world>
+</sdf>
