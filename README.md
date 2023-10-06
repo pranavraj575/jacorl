@@ -36,6 +36,10 @@ Camera capture from the simulated robot (left), and bounding box of joint on the
 
 ## Installation
 
+Note: all commands to run for installation should be on this page, with the exception of [step 1 (installing ROS)](https://github.com/pranavraj575/jacorl/blob/master/README.md#1-install-ros-if-it-is-not-already-installed). The hyperlinks are just for more information/if any errors occur
+
+WARNING: THIS DOES NOT WORK WITH CONDA! deactivate it or uninstall it first
+
 #### 1. Install [ROS](http://wiki.ros.org/ROS/Installation) (if it is not already installed)
 
 * ROS Melodic on Ubuntu 18.04
@@ -66,7 +70,7 @@ sudo apt-get install -y ros-<distro>-joint-trajectory-controller
 sudo apt-get install -y ros-<distro>-controller-*
 sudo apt-get install -y ros-<dist>-rgbd-launch
 ```
-(replace `<distro>` by your ROS distribution, for example `kinetic` or `melodic`)
+(replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
 
 #### 3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment), with [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src
 Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
@@ -82,7 +86,10 @@ pip3 install -e .
 cd ../ros_numpy
 pip3 install -e .
 ```
-#### 4. Clone the correct branch of ros_kortex, and copy files over (`<branch-name>` should look like `noetic-devel`)
+
+Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
+
+#### 4. Clone the correct branch of [ros_kortex](https://github.com/Kinovarobotics/ros_kortex), and copy files over (`<branch-name>` should look like `noetic-devel`)
 ```bash
 cd ~/catkin_ws/src
 git clone -b <branch-name> https://github.com/Kinovarobotics/ros_kortex.git
@@ -105,7 +112,7 @@ rosdep update
 rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 ```
 
-(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `kinetic` or `melodic`)
+(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `noetic` or `melodic`)
 
 
 #### 6. Install the ROS packages and build.
@@ -119,7 +126,7 @@ rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
 
-#### 7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+#### 7. Add the following lines to your bashrc file, or run them every time you open a terminal
 
 ```bash
 cd ~/catkin_ws
@@ -158,7 +165,7 @@ In terminal 3, run the python script to test robot actions:
 python3 src/jaco-gym/scripts/test_actions.py
 ```
 
-### For the arm in Gazebo (tested on ROS Melodic and Kinetic)
+### For the arm in Gazebo (tested on ROS Melodic and Noetic)
 
 In terminal 1, cd into the ros-kortex directory and launch the simulated robot environment:
 ```bash
@@ -250,6 +257,5 @@ python3 plot_results.py -f logs/ppo2/JacoGazebo-v1_1/
 
 ## Supported systems
 Tested on:
-- Ubuntu 18.04 and 16.04 
-- Python 3.6.9
-- Gym 0.15.4
+- Ubuntu 18.04; ROS Melodic; Python 3.6.9
+- Ubuntu 20.04; ROS Noetic; Python 3.8.10
