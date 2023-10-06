@@ -2,3 +2,5 @@ __pycache__/
 __pycache__/**
 *.egg-info/
 **.egg-info/
+ros_kortex/**
+ros_kortex
