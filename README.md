@@ -131,7 +131,7 @@ Note, the kinova-ros package was adapted from the [official package](https://git
 ```bash
 cd ~/catkin_ws
 source devel/setup.bash
-export GAZEBO_MODEL_PATH=~/catkin_ws/src/ros_kortex/kortex_gazebo/models
+export GAZEBO_MODEL_PATH=~/catkin_ws/src/models:$GAZEBO_MODEL_PATH
 ```
 At the end of installation and set-up, your file structure should look like this:
 ```
