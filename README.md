@@ -124,7 +124,7 @@ rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 
 Note, the kinova-ros package was adapted from the [official package](https://github.com/Kinovarobotics/kinova-ros).
 
-#### 7. Add the following lines to your bashrc file, or run them every time you wish to run a simulation
+#### 7. Add the following lines to your bashrc file, or run them every time you open a terminal
 
 ```bash
 cd ~/catkin_ws
