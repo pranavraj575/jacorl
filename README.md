@@ -255,6 +255,5 @@ python3 plot_results.py -f logs/ppo2/JacoGazebo-v1_1/
 
 ## Supported systems
 Tested on:
-- Ubuntu 18.04 and 16.04 
-- Python 3.6.9
-- Gym 0.15.4
+- Ubuntu 18.04; ROS Melodic; Python 3.6.9
+- Ubuntu 20.04; ROS Noetic; Python 3.8.10
