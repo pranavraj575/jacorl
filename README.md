@@ -79,7 +79,9 @@ Since this repo contains sub-repositories, you will need to cd into some of the 
 mkdir -p ~/catkin_ws
 cd ~/catkin_ws
 git clone https://github.com/pranavraj575/jacorl src
-pip3 install -e jaco-gym/ rlkit/ ros_numpy/
+pip3 install -e src/jaco-gym/
+pip3 install -e src/rlkit/
+pip3 install -e src/ros_numpy/
 ```
 
 Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
