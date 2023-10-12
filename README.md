@@ -118,7 +118,6 @@ rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 #### 6. Install the ROS packages and build.
 * ```bash
   cd ~/catkin_ws
-  catkin clean
   catkin init
   catkin_make
   ```
