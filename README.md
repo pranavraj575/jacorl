@@ -79,12 +79,9 @@ Since this repo contains sub-repositories, you will need to cd into some of the 
 mkdir -p ~/catkin_ws
 cd ~/catkin_ws
 git clone https://github.com/pranavraj575/jacorl src
-cd src/jaco-gym
-pip3 install -e .
-cd ../rlkit
-pip3 install -e .
-cd ../ros_numpy
-pip3 install -e .
+pip3 install -e src/jaco-gym/
+pip3 install -e src/rlkit/
+pip3 install -e src/ros_numpy/
 ```
 
 Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
@@ -118,7 +115,6 @@ rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 #### 6. Install the ROS packages and build.
 * ```bash
   cd ~/catkin_ws
-  catkin clean
   catkin init
   catkin_make
   ```
