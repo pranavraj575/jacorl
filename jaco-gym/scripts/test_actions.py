@@ -59,11 +59,11 @@ for episode in range(3):
     obs = env.reset()
     rewards = []
     env.save_image(str(episode)+".jpg")
-    # img_numpy = env.robot.get_image_numpy()
-    # print(img_numpy.shape)
-    # img = env.robot.get_image_PIL()
+    #img_numpy = env.robot.get_image_numpy()
+    #print(img_numpy.shape)
+    #img = env.robot.get_image_PIL()
     
-    # env.robot.save_image("myimg.jpeg")
+    #env.robot.save_image("myimg.jpeg")
 
     for t in range(5):
 
@@ -71,7 +71,7 @@ for episode in range(3):
         #action = [0,0,0,0,0,0,-1+2*t/4] # -1 to 1
         print("last joint angle is %f\n",-1+2*t/4)
         obs, reward, done, info = env.step(action)
-        print(env.robot_intersects_self())
+        #print(env.robot_intersects_self())
 
         # print("timestep:", t)
         # print("action: ", action)
