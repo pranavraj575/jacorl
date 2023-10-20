@@ -275,8 +275,8 @@
                 <cameraName>camera</cameraName>
                 <alwaysOn>true</alwaysOn>
                 <frame_name>camera_link_optical</frame_name>
-                <imageTopicName>/camera/color/image_raw</imageTopicName>
-                <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+                <imageTopicName>/attached_camera/color/image_raw</imageTopicName>
+                <cameraInfoTopicName>/attached_camera/color/camera_info</cameraInfoTopicName>
             </plugin>
         </sensor>
       </gazebo>

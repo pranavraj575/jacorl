@@ -13,6 +13,14 @@
       <pose>.75 -0.2 -1.035 0 0 0</pose>
       <static>true</static>
     </include>
+    
+    <model name="head_camera">
+        <include>
+          <static>true</static>
+          <uri>model://head_camera</uri>
+          <pose>.75 -.2 1.5 0 0 0</pose>
+        </include>
+    </model>
 
     <model name="cup1">
         <include>
