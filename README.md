@@ -68,7 +68,7 @@ sudo apt-get install -y ros-<distro>-effort-controllers
 sudo apt-get install -y ros-<distro>-joint-state-controller 
 sudo apt-get install -y ros-<distro>-joint-trajectory-controller 
 sudo apt-get install -y ros-<distro>-controller-*
-sudo apt-get install -y ros-<dist>-rgbd-launch
+sudo apt-get install -y ros-<distro>-rgbd-launch
 ```
 (replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
 
