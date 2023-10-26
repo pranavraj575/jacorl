@@ -142,6 +142,13 @@ At the end of installation and set-up, your file structure should look like this
         - ros_numpy
         - ...
 ```
+#### 8. For conneecting to the physical arm:
+
+Change your laptop IP 
+Also, set subnet mask to 255.255.255.0
+
+Test connection by eitherr going to http://192.168.1.10 or going to the robot ip
+
 ## Test your environment
 
 ### For the physical arm
