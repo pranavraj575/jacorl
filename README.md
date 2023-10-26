@@ -144,7 +144,8 @@ At the end of installation and set-up, your file structure should look like this
 ```
 #### 8. For conneecting to the physical arm:
 
-Change your laptop IP 
+Change your laptop IP to 192.168.1.11 or 192.168.2.11 (not sure what the logic here is)
+
 Also, set subnet mask to 255.255.255.0
 
 Test connection by eitherr going to http://192.168.1.10 or going to the robot ip
