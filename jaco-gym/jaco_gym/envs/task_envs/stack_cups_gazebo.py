@@ -1,14 +1,14 @@
 from gazebo_msgs.msg import LinkStates, ModelState, ModelStates
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import DeleteModel, SpawnModel
-from jaco_gym.envs.robot_env import JacoEnv
+from jaco_gym.envs.gazebo_env import JacoGazeboEnv
 import numpy as np
 import rospy
 import math
 from scipy.spatial.transform import Rotation
 import os
 
-class JacoStackCupsGazebo(JacoEnv):
+class JacoStackCupsGazebo(JacoGazeboEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
                     CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
@@ -18,16 +18,6 @@ class JacoStackCupsGazebo(JacoEnv):
                     ):
                     
         super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences,image_dim)
-        
-        #basic gazebo thingies
-        rospy.wait_for_service("gazebo/delete_model")
-        rospy.wait_for_service("gazebo/spawn_sdf_model")
-        self.delete_model = rospy.ServiceProxy("gazebo/delete_model", DeleteModel)
-        self.spawn_model = rospy.ServiceProxy("gazebo/spawn_sdf_model", SpawnModel)
-        
-        
-        self.pub_topic = '/gazebo/set_model_state'
-        self.pub = rospy.Publisher(self.pub_topic, ModelState, queue_size=1)
 
         # task specific stuff
         
@@ -36,23 +26,7 @@ class JacoStackCupsGazebo(JacoEnv):
         self.cup_ranges=((0.3,0.7),self.table_y_range)
         self.cup_goal_x = 0.3 # or above
         self.max_cup_x = self.cup_ranges[0][1]
-        
-        self.cup_xml=None
-        for path in os.environ.get('GAZEBO_MODEL_PATH', 'Nonesuch').split(':'):
-            model_path=os.path.join(path,'solo_cup','model.sdf')
-            if os.path.exists(model_path):
-                with open(model_path,'r') as f:
-                    self.cup_xml=f.read()
-        
-        
-        self.cup_names=[]
-
-        # Subscribe to object data to obtain cup locations
-        def _call_model_data(data):
-            self.object_data=data
-            
-        self.sub_topic="/gazebo/model_states"
-        self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
+        self.cup_model="solo_cup"
         
 
     def step(self,action):
@@ -71,16 +45,6 @@ class JacoStackCupsGazebo(JacoEnv):
         return obs
     
     #========================= OBSERVATION, REWARD ============================#
-    def get_object_dict(self):
-        return {self.object_data.name[i]:self.object_data.pose[i] for i in range(len(self.object_data.name))}
-    def get_pose_eulerian(self,name):
-        # returns numpy array with pose of an object, includes x,y,z and eulerian rotation
-        obj_dict=self.get_object_dict()
-        position=obj_dict[name].position
-        x,y,z=position.x,position.y,position.z
-        orientation=obj_dict[name].orientation
-        (roll,pitch,yaw)=Rotation.from_quat((orientation.x,orientation.y,orientation.z,orientation.w)).as_euler('xyz')
-        return np.array([x,y,z,roll,pitch,yaw])
         
     def get_obs(self):
         # Observation is a concatination of our joint positions, joint velocities,
@@ -194,11 +158,6 @@ class JacoStackCupsGazebo(JacoEnv):
         return total_reward, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
-    def despawn_cups(self):
-        for cup in self.cup_names:
-            self.delete_model(cup)
-            rospy.sleep(.01)
-        self.cup_names=[]
     
     def spawn_cup(self,name,position,orientation=None):
         pose = Pose()
@@ -217,7 +176,7 @@ class JacoStackCupsGazebo(JacoEnv):
     def reset_cups(self,prob_stand=1,prob_flip=0,prob_other=0): # input the probabilities that the cups are spawned normal, flipped, or fallen
         #print("RESETTing")
         # generate random new cup positions
-        self.despawn_cups()
+        self.despawn_all()
         cup_names = ["cup1", "cup2", "cup3"]
         cup_positions = []
         cup_rotations=[]
@@ -250,34 +209,8 @@ class JacoStackCupsGazebo(JacoEnv):
         cup_names = ["cup1", "cup2", "cup3"]
         for i in range(len(cup_names)):
             (x,y,z)=positions[i]
-            self.spawn_cup(cup_names[i],(x,y,z),orientations[i] if orientations is not None else None)
-        #for zs in [[-1.]*3,[p[2] for p in positions]]:
-        #    for i in range(len(cup_names)):
-        #        (x,y,z)=positions[i]
-                
-                #model_state_msg = ModelState()
-                #pose_msg = Pose()
-                #point_msg = Point()
-                #rot_msg=Quaternion()#default no rotation
-                #if orientations:
-                #  (roll,pitch,yaw)=orientations[i]
-                #  stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
-                #  (rot_msg.x,rot_msg.y,rot_msg.z,rot_msg.w)=stuff
-                #(x,y,_)=positions[i]
-                #point_msg.x = x
-                #point_msg.y = y
-                #point_msg.z = zs[i]
-                #pose_msg.position = point_msg
-                #pose_msg.orientation = rot_msg
-                #self.spawn_cup(cup_names[i],pose_msg)
-                #model_state_msg.model_name = cup_names[i]
-                
-                #model_state_msg.pose = pose_msg
-                
-                #model_state_msg.reference_frame = "world"
-                
-                #self.pub.publish(model_state_msg)
-                #rospy.sleep(.01)
+            self.spawn_model_from_name(self.cup_model,cup_names[i],(x,y,z),orientations[i] if orientations is not None else None)
+
     
     #========================= CUP INFORMATION ==========================#
     def _inversion_check(self,name,tol=.02): 
@@ -303,11 +236,11 @@ class JacoStackCupsGazebo(JacoEnv):
         
     def _is_upside_down(self,name):
         #returns if object named name is flipped (ignoring rotation on z axis, if object is exactly upside down)
-        return self._inversion_check(name,tol)==1
+        return self._inversion_check(name)==1
     
     def _is_fallen_over(self,name):
         #returns if object named name is fallen over
-        return self._inversion_check(name,tol)==-1
+        return self._inversion_check(name)==-1
     
     def robot_holding_cup_position(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
         joint_positions,_,joint_efforts = self.get_joint_state()

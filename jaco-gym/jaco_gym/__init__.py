@@ -7,6 +7,13 @@ register(
     max_episode_steps=50
 )
 
+# basic sim_environment
+register(
+    id='BasicJacoGazebo-v0',
+    entry_point='jaco_gym.envs.gazebo_env:JacoGazeboEnv',
+    max_episode_steps=50
+)
+
 # cup stacky simulation
 register(
     id='JacoCupsGazebo-v0',
