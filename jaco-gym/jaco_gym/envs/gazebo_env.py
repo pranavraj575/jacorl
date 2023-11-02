@@ -68,6 +68,7 @@ class JacoGazeboEnv(JacoEnv):
             print("WARNING: attempt to spawn model with existing name: "+name)
     def spawn_model_from_name(self,model_name,name,position,orientation=None):
         xml=None
+        print("spawning:"+model_name)
         for path in os.environ.get('GAZEBO_MODEL_PATH', 'Nonesuch').split(':'):
             model_path=os.path.join(path,model_name,'model.sdf')
             if os.path.exists(model_path):

@@ -158,17 +158,6 @@ class JacoStackCupsGazebo(JacoGazeboEnv):
         return total_reward, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
-    
-    def spawn_cup(self,name,position,orientation=None):
-        pose = Pose()
-        (pose.position.x,pose.position.y,pose.position.z)=position
-        if orientation:
-            (roll,pitch,yaw)=orientation
-            stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
-            (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
-        self.spawn_model(name, self.cup_xml, "", pose, "world")
-        rospy.sleep(.01)
-        self.cup_names.append(name)
         
     def set_cup_ranges(self,x_range,y_range):
         self.cup_ranges=x_range,y_range
@@ -179,7 +168,7 @@ class JacoStackCupsGazebo(JacoGazeboEnv):
         self.despawn_all()
         cup_names = ["cup1", "cup2", "cup3"]
         cup_positions = []
-        cup_rotations=[]
+        #cup_rotations=[]
         for i in range(len(cup_names)):
             arr=np.random.random()
             yikes=False
@@ -196,22 +185,13 @@ class JacoStackCupsGazebo(JacoGazeboEnv):
                 x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
                 y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
             cup_positions.append((x,y,.065 if not yikes else .1))
-            cup_rotations.append(rot)
-        self.move_cups(cup_positions,cup_rotations)
+            #cup_rotations.append(rot)
+            self.spawn_model_from_name(self.cup_model,cup_names[i],cup_positions[-1],rot)
     
     # To make sure random cup locations do not intersect
     def cup_has_collision(self,x,y,cup_positions,tol=.08):
         return any([np.linalg.norm((pos[0]-x,pos[1]-y)) <= tol for pos in cup_positions]) # any are within tolerance
-    
-    def move_cups(self, positions,orientations=None):
-        #print("moving cups")
-        # move cups to the randomized positions
-        cup_names = ["cup1", "cup2", "cup3"]
-        for i in range(len(cup_names)):
-            (x,y,z)=positions[i]
-            self.spawn_model_from_name(self.cup_model,cup_names[i],(x,y,z),orientations[i] if orientations is not None else None)
 
-    
     #========================= CUP INFORMATION ==========================#
     def _inversion_check(self,name,tol=.02): 
         # ignores rotation about z axis from starting position
