@@ -150,6 +150,8 @@ Also, set subnet mask to 255.255.255.0
 
 Test connection by eitherr going to http://192.168.1.10 or going to the robot ip
 
+Username/password are both admin
+
 ## Test your environment
 
 ### For the physical arm
