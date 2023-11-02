@@ -68,7 +68,7 @@ sudo apt-get install -y ros-<distro>-effort-controllers
 sudo apt-get install -y ros-<distro>-joint-state-controller 
 sudo apt-get install -y ros-<distro>-joint-trajectory-controller 
 sudo apt-get install -y ros-<distro>-controller-*
-sudo apt-get install -y ros-<dist>-rgbd-launch
+sudo apt-get install -y ros-<distro>-rgbd-launch
 ```
 (replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
 
@@ -142,6 +142,14 @@ At the end of installation and set-up, your file structure should look like this
         - ros_numpy
         - ...
 ```
+#### 8. For conneecting to the physical arm:
+
+Change your laptop IP to 192.168.1.11 or 192.168.2.11 (not sure what the logic here is)
+
+Also, set subnet mask to 255.255.255.0
+
+Test connection by eitherr going to http://192.168.1.10 or going to the robot ip
+
 ## Test your environment
 
 ### For the physical arm
