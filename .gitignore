@@ -4,3 +4,5 @@ __pycache__/**
 **.egg-info/
 ros_kortex/**
 ros_kortex
+.idea
+.idea/**
