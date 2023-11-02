@@ -21,28 +21,6 @@
           <pose>.75 -.2 1.5 0 0 0</pose>
         </include>
     </model>
-
-    <model name="cup1">
-        <include>
-          <static>false</static>
-          <uri>model://solo_cup</uri>
-          <pose>0 0 -0.007 0 0 0</pose>
-        </include>
-    </model>
-    <model name="cup2">
-        <include>
-          <static>false</static>
-          <uri>model://solo_cup</uri>
-          <pose>0 0 -0.007 0 0 0</pose>
-        </include>
-    </model>
-    <model name="cup3">
-        <include>
-          <static>false</static>
-          <uri>model://solo_cup</uri>
-          <pose>0 0 -0.007 0 0 0</pose>
-        </include>
-    </model>
     
     <!-- Global light source -->
     <include>
