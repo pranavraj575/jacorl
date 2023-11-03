@@ -11,13 +11,19 @@ import os
 class JacoGazeboEnv(JacoEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
-                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
+                    ATTACHED_CAM_SPACE='attached_camera', #call will look for /ATTACHED_CAM_SPACE/color/image_raw
+                    HEAD_CAM_SPACE='head_camera', #call will look for /HEAD_CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # angular movement allowed at each joint per action
                     image_dim=(128,128,3), # image vector, will resize input images to this
                     ):
                     
-        super().__init__(ROBOT_NAME,CAM_SPACE,init_pos,differences,image_dim)
+        super().__init__(ROBOT_NAME=ROBOT_NAME,
+                        ATTACHED_CAM_SPACE=ATTACHED_CAM_SPACE,
+                        HEAD_CAM_SPACE=HEAD_CAM_SPACE,
+                        init_pos=init_pos,
+                        differences=differences,
+                        image_dim=image_dim)
         
         #basic gazebo thingies
         rospy.wait_for_service("gazebo/delete_model")

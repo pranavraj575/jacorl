@@ -27,7 +27,8 @@ import cv2
 class JacoEnv(gym.Env):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
-                    CAM_SPACE='camera', #call will look for /CAM_SPACE/color/image_raw
+                    ATTACHED_CAM_SPACE='attached_camera', #call will look for /ATTACHED_CAM_SPACE/color/image_raw
+                    HEAD_CAM_SPACE='head_camera', #call will look for /HEAD_CAM_SPACE/color/image_raw
                     init_pos=(0,15,230,0,55,90), #HOME position
                     differences=(15,15,15,15,15,15), # maximum angular movement allowed at each joint per action
                     image_dim=(128,128,3), # image vector, will resize input images to this
@@ -66,9 +67,13 @@ class JacoEnv(gym.Env):
         self.joint_sub=rospy.Subscriber(joint_namespace,JointState,joint_callback)
         
         # Subscribe to camera data
-        def _camera_img_callback(data):
-            self.camera_img = data
-        self.image_sub=rospy.Subscriber("/"+CAM_SPACE+"/color/image_raw",Image,_camera_img_callback)
+        def _attached_camera_img_callback(data):
+            self.attached_camera_img = data
+        self.attached_image_sub=rospy.Subscriber("/"+ATTACHED_CAM_SPACE+"/color/image_raw",Image,_attached_camera_img_callback)
+        
+        def _head_camera_img_callback(data):
+            self.head_camera_img = data
+        self.head_image_sub=rospy.Subscriber("/"+HEAD_CAM_SPACE+"/color/image_raw",Image,_head_camera_img_callback)
         
         #rospy.init_node('example_full_arm_movement_python')
 
@@ -216,39 +221,39 @@ class JacoEnv(gym.Env):
     # Saves the camera image as a numpy array or to a png to be viewed,
     # works on the simulated camera and real camera attached to the Kinova Arm
             
-    def get_image_numpy(self):
-        return ros_numpy.numpify(self.camera_img)
+    def get_image_numpy(self,cam_type="head"):
+        return ros_numpy.numpify(self.head_camera_img if cam_type=="head" else self.attached_camera_img)
     
-    def get_image_obs_array(self):
-        nump=self.get_image_numpy().astype(np.uint8)
+    def get_image_obs_array(self,cam_type="head"):
+        nump=self.get_image_numpy(cam_type=cam_type).astype(np.uint8)
         resized=cv2.resize(nump, self.image_dim[:2], interpolation = cv2.INTER_AREA)
         resized=resized.transpose((2,1,0))# this changes order to [channels, height, width], which is used in CNNs
         return resized.astype(np.float64)
         
-    def get_image_obs_vector(self):
-        return self.get_image_obs_array().flatten()
+    def get_image_obs_vector(self,cam_type="head"):
+        return self.get_image_obs_array(cam_type=cam_type).flatten()
         
-    def recover_image_from_obs_vector(self,vector): # recovers image array (width, height, channels) from obs vector or image vector
+    def recover_image_from_obs_vector(self,vector,cam_type="head"): # recovers image array (width, height, channels) from obs vector or image vector
         # assumes first part of vector is flattened image in [channels, height, width] order
-        thingy=vector[:self.get_image_obs_vector_dim()].reshape(self.image_dim[::-1]) # in reverse, i.e. reshape(3,256,256)
+        thingy=vector[:self.get_image_obs_vector_dim(cam_type="head")].reshape(self.image_dim[::-1]) # in reverse, i.e. reshape(3,256,256)
         thingy=thingy.transpose((2,1,0)) # flips to (width, height, channels)
         return thingy
         
-    def recover_images_from_obs_vectors(self,vectors): # recovers image arrays (M x width, height, channels) from obs vector or image vector (M X K)
+    def recover_images_from_obs_vectors(self,vectors,cam_type="head"): # recovers image arrays (M x width, height, channels) from obs vector or image vector (M X K)
         M=len(vectors)
-        thingy=vector[:,:self.get_image_obs_vector_dim()].reshape((M,)+self.image_dim[::-1]) # in reverse, i.e. reshape(M,3,256,256)
+        thingy=vector[:,:self.get_image_obs_vector_dim(cam_type=cam_type)].reshape((M,)+self.image_dim[::-1]) # in reverse, i.e. reshape(M,3,256,256)
         thingy=thingy.transpose((0,3,2,1))# flips to (M, width, height, channels)
         return thingy
     
-    def get_image_obs_vector_dim(self): 
+    def get_image_obs_vector_dim(self,cam_type="head"): 
         return np.prod(self.image_dim)
     
-    def get_image_PIL(self):
-        img_numpy=self.get_image_numpy()
+    def get_image_PIL(self,cam_type="head"):
+        img_numpy=self.get_image_numpy(cam_type=cam_type)
         return IMG.fromarray(img_numpy, "RGB")
 
-    def save_image(self,filee):
-        img=self.get_image_PIL()
+    def save_image(self,filee,cam_type="head"):
+        img=self.get_image_PIL(cam_type=cam_type)
         img.save(filee)
     
     #============================= INTERSECTION ===============================#
