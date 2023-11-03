@@ -381,6 +381,12 @@ class JacoEnv(gym.Env):
     # a given action is passed in, so to make the robot move just call 
     # env.step(action) instead of using these
     
+    def cartesian_pick(self,x,y,h):
+        r=np.linalg.norm([x,y])
+        theta=np.arctan2(y,x)
+        a,b=(0,0)
+        self.move_arm((theta,a,360-b,0,a+b-90,90))
+    
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
         self.last_action_notif_type = None
