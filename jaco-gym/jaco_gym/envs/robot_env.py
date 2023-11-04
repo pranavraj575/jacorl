@@ -386,7 +386,7 @@ class JacoEnv(gym.Env):
     # a given action is passed in, so to make the robot move just call 
     # env.step(action) instead of using these
     
-    def cartesian_pick(self,x,y,h):
+    def cartesian_pick(self,x,y,h,sight_ang=0):
         r=np.linalg.norm([x,y])
         psi=np.arctan2(y,x)
         h_0=self.LENGTHS[0]+self.LENGTHS[1]
@@ -399,13 +399,24 @@ class JacoEnv(gym.Env):
             h=h*(a+b)/c
             r=r*(a+b)/c
             c=a+b
+        if c==0:
+            print('error, tried going to (x,y,h-h0)=(0,0,0)')
+            h=.01
+            r=.01
+            c=np.sqrt(h**2+r**2)
+        if c<abs(a-b):
+            print('reach out of bounds, going close')
+            h=h*abs(a-b)/c
+            r=r*abs(a-b)/c
+            c=abs(a-b)
         theta=np.arccos((a**2+b**2-c**2)/(2*a*b))
         
-        y=np.arctan(h/r)
+        y=np.arctan2(h,r)
         x=np.arccos((a**2+c**2-b**2)/(2*a*c))
         phi=np.pi/2-x-y
         
-        self.move_arm((np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,90,90))
+        
+        self.move_arm((np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,np.degrees(phi-theta)+90+sight_ang,90))
     
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
