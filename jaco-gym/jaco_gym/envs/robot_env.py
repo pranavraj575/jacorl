@@ -388,9 +388,24 @@ class JacoEnv(gym.Env):
     
     def cartesian_pick(self,x,y,h):
         r=np.linalg.norm([x,y])
-        theta=np.arctan2(y,x)
-        a,b=(0,0)
-        self.move_arm((theta,a,360-b,0,a+b-90,90))
+        psi=np.arctan2(y,x)
+        h_0=self.LENGTHS[0]+self.LENGTHS[1]
+        h-=h_0
+        
+        a,b=self.LENGTHS[2:4]
+        c=np.sqrt(h**2+r**2)
+        if c>a+b: 
+            print('reach out of bounds, going close')
+            h=h*(a+b)/c
+            r=r*(a+b)/c
+            c=a+b
+        theta=np.arccos((a**2+b**2-c**2)/(2*a*b))
+        
+        y=np.arctan(h/r)
+        x=np.arccos((a**2+c**2-b**2)/(2*a*c))
+        phi=np.pi/2-x-y
+        
+        self.move_arm((np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,90,90))
     
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)
