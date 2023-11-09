@@ -163,7 +163,7 @@ roslaunch kortex_driver kortex_driver.launch dof:=6 gripper:=robotiq_2f_85 ip_ad
 
 In terminal 2, run ros_kortex vision to publish camera data:
 ```bash
-roslaunch kinova_vision kinova_vision.launch camera:=attached_camera
+roslaunch kinova_vision robot_eye.launch device:=192.168.1.10
 ```
 
 In terminal 3, run the python script to test robot actions:
