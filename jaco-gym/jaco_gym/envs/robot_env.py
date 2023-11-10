@@ -423,22 +423,25 @@ class JacoEnv(gym.Env):
         h-=h_0
         
         a,b=self.LENGTHS[2:4]
+        gamma=np.radians(35) # lowest possible c angle
+        
+        c_low,c_high=(np.sqrt(a**2+b**2-2*a*b*np.cos(gamma)),a+b)
         c=np.sqrt(h**2+r**2)
-        if c>a+b: 
+        if c>c_high: 
             print('reach out of bounds, going close')
-            h=h*(a+b)/c
-            r=r*(a+b)/c
-            c=a+b
+            h=h*(c_high)/c
+            r=r*(c_high)/c
+            c=c_high
         if c==0:
             print('error, tried going to (x,y,h-h0)=(0,0,0)')
             h=.01
             r=.01
             c=np.sqrt(h**2+r**2)
-        if c<abs(a-b):
+        if c<c_low:
             print('reach out of bounds, going close')
-            h=h*abs(a-b)/c
-            r=r*abs(a-b)/c
-            c=abs(a-b)
+            h=h*c_low/c
+            r=r*c_low/c
+            c=c_low
         theta=np.arccos((a**2+b**2-c**2)/(2*a*b))
         
         y=np.arctan2(h,r)
