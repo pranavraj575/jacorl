@@ -58,7 +58,7 @@ class JacoGazeboEnv(JacoEnv):
         return np.array([x,y,z,roll,pitch,yaw])
 
     
-    #========================= RESETTING ENVIRONMENT ==========================#
+    #========================= OBJECT EDITING ==========================#
     def spawn_model_from_xml(self,xml_text,name,position,orientation=None):
         if not name in self.models_spawned:
             pose=Pose()
