@@ -4,6 +4,13 @@ This repository contains a complete environment for Reinforcement Learning that 
 
 ![Jaco Gazebo](/jaco_world.png)
 
+Table of Contents 
+|---------------|
+| [Repo Layout](##repo-layout) | 
+| [Enviornment Details](##enviornment-details) |
+| [Installation Instructions](https://github.com/pranavraj575/jacorl/blob/master/setup/README.md) |
+| [Agent Training](##train-the-agent) |
+
 ## Repo Layout
 The repository contains the following sub-folders:
 * <b>jaco-gym</b> - contains robot enviornment, task environment, and sample training scripts
