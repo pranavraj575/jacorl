@@ -4,12 +4,12 @@ This repository contains a complete environment for Reinforcement Learning that 
 
 ![Jaco Gazebo](/jaco_world.png)
 
-**TABLE OF CONTENTS**
-|---------------|
-| [Repo Layout](#repo-layout) - describing each folder in our repository and the basic setup | 
-| [Enviornment Details](#environment-details) - explaining our gym environemnt setup, action and state spaces |
-| [Installation Instructions](https://github.com/pranavraj575/jacorl/blob/master/setup/README.md) - instructions for how to set up and run the code |
-| [Agent Training](#train-the-agent) - instructions for training the robot |
+|**TABLE OF CONTENTS**||
+| ------------- | ------------- |
+| [Repo Layout](#repo-layout) | describes each folder in our repository and the basic setup | 
+| [Enviornment Details](#environment-details) | explains our gym environemnt setup, action and state spaces |
+| [Installation Instructions](https://github.com/pranavraj575/jacorl/blob/master/setup/README.md) | instructions for how to set up and run the code |
+| [Agent Training](#train-the-agent) | instructions for training the robot |
 
 ## Repo Layout
 The repository contains the following sub-folders:
