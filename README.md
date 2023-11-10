@@ -4,7 +4,7 @@ This repository contains a complete environment for Reinforcement Learning that 
 
 ![Jaco Gazebo](/jaco_world.png)
 
-At a Glance 
+**TABLE OF CONTENTS**
 |---------------|
 | [Repo Layout](#repo-layout) - describing each folder in our repository and the basic setup | 
 | [Enviornment Details](#environment-details) - explaining our gym environemnt setup, action and state spaces |
