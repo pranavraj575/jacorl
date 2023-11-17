@@ -14,5 +14,6 @@ setup(name='jaco_gym',
           'pytz==2020.1',
           'optuna', 
           'pytablewriter',
-          'tensorflow-gpu==2.2.0']
+          #'tensorflow-gpu==2.2.0'
+            ]
 )
