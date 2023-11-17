@@ -44,10 +44,12 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         return obs,REWARD,DONE,INFO
     
     def reset(self):
+        joint_obs=super().reset()
         self.reset_cup()
         #print('RESETTING CUPS')
-        joint_obs=super().reset()
         cup_pos=self.get_pose_eulerian('cup')[:3]
+        x,y,h,gamma=self.look_at_cup(cup_pos[0],cup_pos[1])
+        self.cartesian_pick(x,y,h,gamma)
         obs=self.get_obs()
         return obs
     
@@ -73,6 +75,72 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         return 0, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
+    def find_chord(self,R,c,d):
+        # given a triangle with base R, sides c and d, finds intersection angle of the d side
+        a=(d**2-c**2+R**2)/(2*R)
+        return np.arccos(a/d)
+        
+    def look_at_cup(self,x,y,sight_dist=.3): 
+        # returns x,y,h,deg to look at cup on table
+        # sight_dist is how far away to look at cup
+        temp=np.array((x,y))
+        r=np.linalg.norm(temp)
+        new_r=max(r-.04,.04)
+        x,y=temp*new_r/r
+        
+        
+        cup_vec=np.array((x,y,-self.LENGTHS[0]-self.LENGTHS[1])) # vector to cup
+        R=np.linalg.norm(cup_vec)
+        r=np.linalg.norm(cup_vec[:2])
+        theta=np.arctan2(cup_vec[2],r) # angle from arm shoulder to cup
+        
+        
+        d=sight_dist+self.LENGTHS[5]+self.LENGTHS[6] # this is how far the wrist tilt joint should be
+        c_low,c_high = self.wrist_tilt_bounds()
+        
+        #print('wrist bounds:',c_low,c_high)
+        #print('d:',d)
+        #print('R:',R)
+        
+        if R>=c_high+d:
+            #print('returning since',R,">=",c_high,'+',d)
+            xp,yp,dh=cup_vec*c_high/R
+            h=self.LENGTHS[0]+self.LENGTHS[1]+dh
+            return xp,yp,h,theta
+        if R<=c_low:
+            #print('returning since',R,"<=",c_low)
+            return x,y,d,-90
+        
+        bounds=[np.radians(10),np.radians(90)] # bounds of angle from the cup
+        dead_zone=[-theta,-theta] # cannot choose here
+        if c_high<R: 
+            ang=self.find_chord(R,c_high,d)
+            bounds[1]=min((-theta)+ang,bounds[1])
+            bounds[0]=max(bounds[0],(-theta)-ang)
+            #print('bounds:',np.degrees(bounds))
+        if R<=c_low+d:
+            ang=self.find_chord(R,c_low,d)
+            dead_zone[0]=max((-theta)-ang,bounds[0])
+            dead_zone[1]=min((-theta)+ang,bounds[1])
+            #print('dead zone:',np.degrees(dead_zone))
+        
+        
+        dead_area=dead_zone[1]-dead_zone[0]
+        rand=np.random.uniform(bounds[0],bounds[1]-dead_area)
+        if rand<=dead_zone[0]:
+            angle=rand
+        else:
+            angle=rand+dead_area
+            
+        h=np.sin(angle)*d
+        eaten=np.cos(angle)*d
+        xp,yp=cup_vec[:2]*(r-eaten)/r
+        
+        #print(r-eaten,h,-np.degrees(angle))
+        
+        
+        return xp,yp,h,-np.degrees(angle)
+        
         
     def set_cup_ranges(self,x_range,y_range):
         self.cup_ranges=x_range,y_range
@@ -94,7 +162,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
         y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
         
-        self.spawn_model_from_name(self.cup_model,cup_names[i],(x,y,.065 if not yikes else .1),rot)
+        self.spawn_model_from_name(self.cup_model,'cup',(x,y,.065 if not yikes else .1),rot)
     
     #========================= CUP INFORMATION ==========================#
     def _inversion_check(self,name,tol=.02): 

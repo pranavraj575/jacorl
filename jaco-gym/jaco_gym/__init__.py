@@ -16,6 +16,13 @@ register(
 
 # cup stacky simulation
 register(
+    id='JacoCupGrabGazebo-v0',
+    entry_point='jaco_gym.envs.task_envs.single_cup_grasp_gazebo:JacoGrabCupGazebo',
+    max_episode_steps=50
+)
+
+# cup stacky simulation
+register(
     id='JacoCupsGazebo-v0',
     entry_point='jaco_gym.envs.task_envs.stack_cups_gazebo:JacoStackCupsGazebo',
     max_episode_steps=50

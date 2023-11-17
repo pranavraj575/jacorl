@@ -159,7 +159,7 @@ class JacoEnv(gym.Env):
     def reset(self): # OVERWRITE THIS METHOD IN SUBCLASS
         self.move_fingy(0)
         self.move_arm(self.init_pos)
-        obs=self.get_obs()
+        obs=np.array([])
         return obs
         
     #========================== OBSERVATION FUNCTIONS ============================#
@@ -172,7 +172,7 @@ class JacoEnv(gym.Env):
         return np.concatenate((self.get_image_obs_vector(),self.get_obs()))
     
     def get_obs_dim(self): # OVERWRITE THIS METHOD IN SUBCLASS
-        return 21
+        return 0
     
     
     #========================== GETTING ROBOT INFO ============================#
@@ -415,17 +415,23 @@ class JacoEnv(gym.Env):
     # these functions will be called automatically in the step function when
     # a given action is passed in, so to make the robot move just call 
     # env.step(action) instead of using these
-    
+    def wrist_tilt_bounds(self,gamma=np.radians(35)):
+        # finds min and max possible distances that the wrist tilt joint is from the "shoulder" joint
+        # gamma is lowest possible elbow angle
+        a=self.LENGTHS[2]
+        b=self.LENGTHS[3]+self.LENGTHS[4]
+        return (np.sqrt(a**2+b**2-2*a*b*np.cos(gamma)),a+b)
+        
     def cartesian_pick(self,x,y,h,sight_ang=0):
         r=np.linalg.norm([x,y])
         psi=np.arctan2(y,x)
         h_0=self.LENGTHS[0]+self.LENGTHS[1]
         h-=h_0
         
-        a,b=self.LENGTHS[2:4]
-        gamma=np.radians(35) # lowest possible c angle
+        a=self.LENGTHS[2]
+        b=self.LENGTHS[3]+self.LENGTHS[4]        
+        c_low,c_high=self.wrist_tilt_bounds()
         
-        c_low,c_high=(np.sqrt(a**2+b**2-2*a*b*np.cos(gamma)),a+b)
         c=np.sqrt(h**2+r**2)
         if c>c_high: 
             print('reach out of bounds, going close')
@@ -449,7 +455,7 @@ class JacoEnv(gym.Env):
         phi=np.pi/2-x-y
         
         
-        self.move_arm((np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,np.degrees(phi-theta)+90+sight_ang,90))
+        self.move_arm((-np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,np.degrees(phi-theta)+90+sight_ang,90))
     
     def move_arm(self,angles):
         # moves robot arm to the angles, requires a list of 6 (list of #dof)

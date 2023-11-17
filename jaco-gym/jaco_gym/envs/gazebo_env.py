@@ -69,7 +69,7 @@ class JacoGazeboEnv(JacoEnv):
                 (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
             self.spawn_model(name, xml_text, "", pose, "world")
             self.models_spawned.add(name)
-            rospy.sleep(.1)
+            rospy.sleep(.3)
         else:
             print("WARNING: attempt to spawn model with existing name: "+name)
     def spawn_model_from_name(self,model_name,name,position,orientation=None):
@@ -89,7 +89,7 @@ class JacoGazeboEnv(JacoEnv):
         if model_name in self.models_spawned:
             self.delete_model(model_name)
             self.models_spawned.remove(model_name)
-            rospy.sleep(.1)
+            rospy.sleep(.3)
         else:
             print("WARNING: attempt to despawn non-existant model")
     def despawn_all(self):
