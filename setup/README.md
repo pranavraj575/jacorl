@@ -89,8 +89,7 @@ Note, the kinova-ros package was adapted from the [official package](https://git
 #### 7. Add the following lines to your bashrc file, or run them every time you open a terminal
 
 ```bash
-cd ~/catkin_ws
-source devel/setup.bash
+source ~/catkin_ws/devel/setup.bash
 export GAZEBO_MODEL_PATH=~/catkin_ws/src/models:$GAZEBO_MODEL_PATH
 ```
 At the end of installation and set-up, your file structure should look like this:
