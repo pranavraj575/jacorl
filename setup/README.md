@@ -15,28 +15,7 @@ Make sure the following line is in the .bashrc file (with `<distro>` replaced by
 source /opt/ros/<distro>/setup.bash
 ```
 
-Then complete the following sudo installs:
-
-```bash
-sudo apt-get update && sudo apt-get install -y cmake libopenmpi-dev python3-dev zlib1g-dev python3-pip swig ffmpeg python3-catkin-tools python3-osrf-pycommon
-sudo pip3 install rospkg catkin_pkg
-```
-
-#### 2. Install the robot controllers
-
-```bash
-sudo apt-get install -y ros-<distro>-gazebo-ros-control
-sudo apt-get install -y ros-<distro>-ros-controllers*
-sudo apt-get install -y ros-<distro>-trac-ik-kinematics-plugin
-sudo apt-get install -y ros-<distro>-effort-controllers 
-sudo apt-get install -y ros-<distro>-joint-state-controller 
-sudo apt-get install -y ros-<distro>-joint-trajectory-controller 
-sudo apt-get install -y ros-<distro>-controller-*
-sudo apt-get install -y ros-<distro>-rgbd-launch
-```
-(replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
-
-#### 3. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment), with [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src
+#### 2. Install and configure your [Catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment), with [jacorl](https://github.com/pranavraj575/jacorl) (this repository) as src
 Since this repo contains sub-repositories, you will need to cd into some of the subdirectories and run pip3 install -e . to properly install the required packages (see / copy the lines below):
 
 ```bash
@@ -50,17 +29,17 @@ pip3 install -e src/ros_numpy/
 
 Note: if the `jaco-gym` install doesnt work, try giving it one more go before panicking
 
-#### 4. Clone the correct branch of [ros_kortex](https://github.com/Kinovarobotics/ros_kortex), and copy files over (`<branch-name>` should look like `noetic-devel`)
+#### 3. Clone the correct branch of [ros_kortex](https://github.com/Kinovarobotics/ros_kortex), and copy files over (`<branch-name>` should look like `noetic-devel`)
 ```bash
 cd ~/catkin_ws/src
 git clone -b <branch-name> https://github.com/Kinovarobotics/ros_kortex.git
 cp -r setup/kortex_gazebo/* ros_kortex/kortex_gazebo
 cp setup/misc/gen3_macro.xacro ros_kortex/kortex_description/arms/gen3/6dof/urdf/
 ```
-#### 5. Install dependencies for the ros_kortex and ros_kortex_vision package. For more detailed instructions, see [here](https://github.com/Kinovarobotics/ros_kortex) and [here](https://github.com/pranavraj575/jacorl/tree/master/ros_kortex_vision).
+
+#### 4. Install dependencies for the ros_kortex and ros_kortex_vision package. For more detailed instructions, see [here](https://github.com/Kinovarobotics/ros_kortex) and [here](https://github.com/pranavraj575/jacorl/tree/master/ros_kortex_vision).
 ```bash
-sudo apt install -y gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base
-sudo apt install -y python3-rosdep2
+sudo apt install -y python3 python3-pip python3-rosdep2 
 ``` 
 
 ```bash
@@ -73,7 +52,29 @@ rosdep update
 rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 ```
 
-(replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `noetic` or `melodic`)
+(replace `<distro>` with your corresponding ROS distribution, for example `noetic` or `melodic`)
+
+
+Then complete the following sudo installs:
+
+```bash
+sudo apt-get update && sudo apt-get install -y cmake libopenmpi-dev python3-dev zlib1g-dev swig ffmpeg python3-catkin-tools python3-osrf-pycommon gstreamer1.0-tools gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-base
+sudo pip3 install rospkg catkin_pkg
+```
+
+#### 5. Install the robot controllers
+
+```bash
+sudo apt-get install -y ros-<distro>-gazebo-ros-control
+sudo apt-get install -y ros-<distro>-ros-controllers*
+sudo apt-get install -y ros-<distro>-trac-ik-kinematics-plugin
+sudo apt-get install -y ros-<distro>-effort-controllers 
+sudo apt-get install -y ros-<distro>-joint-state-controller 
+sudo apt-get install -y ros-<distro>-joint-trajectory-controller 
+sudo apt-get install -y ros-<distro>-controller-*
+sudo apt-get install -y ros-<distro>-rgbd-launch
+```
+(replace `<distro>` by your ROS distribution, for example `noetic` or `melodic`)
 
 
 #### 6. Install the ROS packages and build. (Note: might need to install additional packages here based on build output)
