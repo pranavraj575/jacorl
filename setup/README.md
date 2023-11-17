@@ -76,7 +76,7 @@ rosdep install --from-paths src --ignore-src -y --rosdistro <distro>
 (replace `<branch-name>` and `<distro>` with your corresponding ROS distribution, for example `noetic` or `melodic`)
 
 
-#### 6. Install the ROS packages and build.
+#### 6. Install the ROS packages and build. (Note: might need to install additional packages here based on build output)
 * ```bash
   cd ~/catkin_ws
   catkin init
