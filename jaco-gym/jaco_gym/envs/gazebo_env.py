@@ -48,6 +48,7 @@ class JacoGazeboEnv(JacoEnv):
     #========================= OBSERVATION, REWARD ============================#
     def get_object_dict(self):
         return {self.object_data.name[i]:self.object_data.pose[i] for i in range(len(self.object_data.name))}
+    
     def get_pose_eulerian(self,name):
         # returns numpy array with pose of an object, includes x,y,z and eulerian rotation
         obj_dict=self.get_object_dict()
@@ -59,19 +60,24 @@ class JacoGazeboEnv(JacoEnv):
 
     
     #========================= OBJECT EDITING ==========================#
+    def object_exists(self,name):
+        return name in self.get_object_dict()
+        
     def spawn_model_from_xml(self,xml_text,name,position,orientation=None):
         if not name in self.models_spawned:
-            pose=Pose()
-            (pose.position.x,pose.position.y,pose.position.z)=position
-            if orientation:
-                (roll,pitch,yaw)=orientation
-                stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
-                (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
-            self.spawn_model(name, xml_text, "", pose, "world")
-            self.models_spawned.add(name)
-            rospy.sleep(.3)
+            while not self.object_exists(name):
+                pose=Pose()
+                (pose.position.x,pose.position.y,pose.position.z)=position
+                if orientation:
+                    (roll,pitch,yaw)=orientation
+                    stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
+                    (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
+                self.spawn_model(name, xml_text, "", pose, "world")
+                self.models_spawned.add(name)
+                rospy.sleep(.3)
         else:
             print("WARNING: attempt to spawn model with existing name: "+name)
+    
     def spawn_model_from_name(self,model_name,name,position,orientation=None):
         xml=None
         print("spawning:"+model_name)
@@ -85,6 +91,7 @@ class JacoGazeboEnv(JacoEnv):
             print("looked in directories of $GAZEBO_MODEL_PATH="+os.environ.get('GAZEBO_MODEL_PATH', '(not defined)'))
         else:
             self.spawn_model_from_xml(xml,name,position,orientation)
+    
     def despawn_model(self,model_name):
         if model_name in self.models_spawned:
             self.delete_model(model_name)
@@ -92,6 +99,7 @@ class JacoGazeboEnv(JacoEnv):
             rospy.sleep(.3)
         else:
             print("WARNING: attempt to despawn non-existant model")
+    
     def despawn_all(self):
         for nm in list(self.models_spawned):
             self.despawn_model(nm)
