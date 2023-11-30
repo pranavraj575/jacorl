@@ -84,12 +84,12 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         tip_coord = self.get_cartesian_points()[-1][-1] # should be max extension of fingers
         grabby_coord=self.get_cartesian_points()[-1][-2] # should be about where 'inside hand' is
         cup_p=self.get_pose_eulerian("cup")
-
+        dist_to_cup=np.linalg.norm(cup_p[:3]-tip_coord)
         obj_dict=self.get_object_dict()
         grabbed_cup=True
         if not self.robot_holding_cup_position():
             grabbed_cup=False
-        if np.linalg.norm(cup_p[:3]-tip_coord)>.05:
+        if dist_to_cup>.05:
             grabbed_cup=False
         
         
