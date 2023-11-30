@@ -73,8 +73,8 @@ class JacoGazeboEnv(JacoEnv):
                     stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
                     (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
                 self.spawn_model(name, xml_text, "", pose, "world")
-                self.models_spawned.add(name)
                 rospy.sleep(.3)
+            self.models_spawned.add(name)
         else:
             print("WARNING: attempt to spawn model with existing name: "+name)
     
