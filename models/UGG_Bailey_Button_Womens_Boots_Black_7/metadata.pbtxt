@@ -1,0 +1,39 @@
+model {
+  file: "model.sdf"
+}
+name: "UGG_Bailey_Button_Womens_Boots_Black_7"
+description: "UGG Bailey Button Women\'s Boots- Black 7\nUgg Boots: Ugg Bailey Button Boots for Women by UGG Australia. Bringing versatility to the calf-height style of the Classic Short, the Bailey Button showcases the exclusivewooden logo button with elastic-band closure--in a spectrum of colors. Signature Twinface sheepskin silhouette can be cuffed to expose its cozy interior."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "UGG"
+}
+annotations {
+  key: "gtin"
+  value: "889830776060"
+}
+annotations {
+  key: "mpn"
+  value: "5803-blk-07"
+}
+annotations {
+  key: "sku"
+  value: "5803-BLK-07"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}

@@ -1,0 +1,35 @@
+model {
+  file: "model.sdf"
+}
+name: "Copperhead_Snake_Tieks_Brown_Snake_Print_Ballet_Flats"
+description: "Copperhead Snake Tieks - Brown Snake Print Ballet Flats\nAdd exotic elegance to your step in these couture-worthy, Italian leather ballet flats. The metallic shine of copper, pewter and black combine forces with the perfect print to create a breathtaking pair of Tieks. Made with premium, soft, top-grain Italian leather. Non-elasticized, cushioned back and padded instep. Foldable split-sole design for ultimate portability. Signature Tiek Blue stripes and durable, non-skid rubber soles."
+version: 1
+authors {
+  name: "Google"
+  email: "scanned-objects@google.com"
+}
+legal {
+  copyright: "Copyright 2020 Google LLC."
+  license: "Creative Commons Attribution 4.0 International"
+}
+annotations {
+  key: "brand"
+  value: "Tieks by Gavrieli"
+}
+annotations {
+  key: "mpn"
+  value: "204"
+}
+annotations {
+  key: "sku"
+  value: "204"
+}
+compatibilities {
+  name: "Gazebo"
+  version {
+    major: 11
+  }
+}
+categories {
+  first: "Shoe"
+}
