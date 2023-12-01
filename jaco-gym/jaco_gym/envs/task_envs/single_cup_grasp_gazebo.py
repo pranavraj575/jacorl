@@ -32,7 +32,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         self.cup_ranges=((0.3,0.7),self.table_y_range)
         self.cup_goal_x = 0.3 # or above
         self.max_cup_x = self.cup_ranges[0][1]
-        self.cup_model="solo_cup"
+        self.model_file_names=["solo_cup",]
         
 
     def step(self,action):
@@ -47,7 +47,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         joint_obs=super().reset()
         self.reset_cup()
         #print('RESETTING CUPS')
-        cup_pos=self.get_pose_eulerian('cup')[:3]
+        cup_pos=self.get_pose_eulerian('targetObject')[:3]
         x,y,h,gamma=self.look_at_cup(cup_pos[0],cup_pos[1])
         self.cartesian_pick(x,y,h,gamma)
         obs=self.get_obs()
@@ -64,7 +64,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         pos=pos%(2*np.pi) # MOD POSITION since it is an angle
         
         return np.concatenate([pos,vel,eff] +
-                                [self.get_pose_eulerian('cup')]
+                                [self.get_pose_eulerian('targetObject')]
                                 )
         
     def get_obs_dim(self):
@@ -83,7 +83,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
             print("\n--------------------")
         tip_coord = self.get_cartesian_points()[-1][-1] # should be max extension of fingers
         grabby_coord=self.get_cartesian_points()[-1][-2] # should be about where 'inside hand' is
-        cup_p=self.get_pose_eulerian("cup")
+        cup_p=self.get_pose_eulerian("targetObject")
         dist_to_cup=np.linalg.norm(cup_p[:3]-tip_coord)
         obj_dict=self.get_object_dict()
         grabbed_cup=True
@@ -185,8 +185,10 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
             rot=tuple(np.random.random(2)*2*np.pi)+(0.,) # random numbers from 0 to 2pi for pitch and roll, prob gonna fall
         x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
         y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
+
+        model_name=np.random.choice(self.model_file_names)
         
-        self.spawn_model_from_name(self.cup_model,'cup',(x,y,.065 if not yikes else .1),rot)
+        self.spawn_model_from_name(model_name,'targetObject',(x,y,.065 if not yikes else .1),rot)
     
     #========================= CUP INFORMATION ==========================#
     def _inversion_check(self,name,tol=.02): 
