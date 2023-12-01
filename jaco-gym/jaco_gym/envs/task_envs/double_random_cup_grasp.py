@@ -8,7 +8,7 @@ import math
 from scipy.spatial.transform import Rotation
 import os
 
-class JacoGrabCupGazebo(JacoGazeboEnv):
+class JacoMultiGrabCupGazebo(JacoGazeboEnv):
     def __init__(self,
                     ROBOT_NAME='my_gen3',
                     ATTACHED_CAM_SPACE='attached_camera', #call will look for /ATTACHED_CAM_SPACE/color/image_raw
@@ -32,7 +32,9 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         self.cup_ranges=((0.3,0.7),self.table_y_range)
         self.cup_goal_x = 0.3 # or above
         self.max_cup_x = self.cup_ranges[0][1]
+        self.number=2
         self.model_file_names=["solo_cup",]
+        self.ordered_names=[]
         
 
     def step(self,action):
@@ -43,11 +45,15 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         #print("good")
         return obs,REWARD,DONE,INFO
     
+    def main_cup_name(self):
+        return 'cup0'
+    
     def reset(self):
+        self.ordered_names=[]
         joint_obs=super().reset()
         self.reset_cup()
         #print('RESETTING CUPS')
-        cup_pos=self.get_pose_eulerian('targetObject')[:3]
+        cup_pos=self.get_pose_eulerian(self.main_cup_name())[:3]
         x,y,h,gamma=self.look_at_point(cup_pos[0],cup_pos[1])
         self.cartesian_pick(x,y,h,gamma)
         obs=self.get_obs()
@@ -64,12 +70,14 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         pos=pos%(2*np.pi) # MOD POSITION since it is an angle
         
         return np.concatenate([pos,vel,eff] +
-                                [self.get_pose_eulerian('targetObject')]
+                                self.get_cup_positions()
                                 )
-        
+    def get_cup_positions(self):
+        return [self.get_pose_eulerian(nm) for nm in self.ordered_names]
+    
     def get_obs_dim(self):
         #print("Here")
-        return 21+1*6
+        return 21+self.number*6
 
     def robot_holding_cup_position(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
         joint_positions,_,joint_efforts = self.get_joint_state()
@@ -98,7 +106,9 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         
         return 0, False
     
-    #========================= RESETTING ENVIRONMENT ==========================#        
+    #========================= RESETTING ENVIRONMENT ==========================#
+        
+        
         
     def set_cup_ranges(self,x_range,y_range):
         self.cup_ranges=x_range,y_range
@@ -107,24 +117,28 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         #print("RESETTing")
         # generate random new cup positions
         self.despawn_all()
-        
-        arr=np.random.random()
-        yikes=False
-        if arr<prob_stand:
-            rot=(0.,0.,0.)
-        elif arr<prob_stand+prob_flip:
-            rot=(0.,np.pi,0.)
-        else:
-            yikes=True
-            rot=tuple(np.random.random(2)*2*np.pi)+(0.,) # random numbers from 0 to 2pi for pitch and roll, prob gonna fall
-        x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
-        y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
-
-        model_name=np.random.choice(self.model_file_names)
-        
-        self.spawn_model_from_name(model_name,'targetObject',(x,y,.065 if not yikes else .1),rot)
+        for i in range(self.number):
+            arr=np.random.random()
+            yikes=False
+            if arr<prob_stand:
+                rot=(0.,0.,0.)
+            elif arr<prob_stand+prob_flip:
+                rot=(0.,np.pi,0.)
+            else:
+                yikes=True
+                rot=tuple(np.random.random(2)*2*np.pi)+(0.,) # random numbers from 0 to 2pi for pitch and roll, prob gonna fall
+            x = np.random.uniform(self.cup_ranges[0][0],self.cup_ranges[0][1])
+            y = np.random.uniform(self.cup_ranges[1][0],self.cup_ranges[1][1])
     
+            model_name=np.random.choice(self.model_file_names)
+            
+            obj_name='cup'+str(i)
+            self.ordered_names.append(obj_name)
+            
+            self.spawn_model_from_name(model_name,obj_name,(x,y,.065 if not yikes else .1),rot)
+        
     #========================= CUP INFORMATION ==========================#
+        
     
     def robot_holding_cup_position(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
         joint_positions,_,joint_efforts = self.get_joint_state()

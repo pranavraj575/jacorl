@@ -232,6 +232,8 @@ class JacoEnv(gym.Env):
         return bottom, base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
         # Gripper positions has palm of hand, and other data
 
+    def get_tip_coord(self):
+        return self.get_cartesian_points()[-1][-1]
     #========================= SAVING CAMERA IMAGES ===========================#
 
     # Saves the camera image as a numpy array or to a png to be viewed,
@@ -421,6 +423,73 @@ class JacoEnv(gym.Env):
         a=self.LENGTHS[2]
         b=self.LENGTHS[3]+self.LENGTHS[4]
         return (np.sqrt(a**2+b**2-2*a*b*np.cos(gamma)),a+b)
+        
+    
+    def find_chord(self,R,c,d):
+        # given a triangle with base R, sides c and d, finds intersection angle of the d side
+        a=(d**2-c**2+R**2)/(2*R)
+        return np.arccos(a/d)
+        
+    def look_at_point(self,x,y,sight_dist=.3): 
+        # returns x,y,h,deg to look at point on table
+        # sight_dist is how far away to look at point
+        temp=np.array((x,y))
+        r=np.linalg.norm(temp)
+        new_r=max(r-.04,.04)
+        x,y=temp*new_r/r
+        
+        
+        vec=np.array((x,y,-self.LENGTHS[0]-self.LENGTHS[1])) # vector to point
+        R=np.linalg.norm(vec)
+        r=np.linalg.norm(vec[:2])
+        theta=np.arctan2(vec[2],r) # angle from arm shoulder to point
+        
+        
+        d=sight_dist+self.LENGTHS[5]+self.LENGTHS[6] # this is how far the wrist tilt joint should be
+        c_low,c_high = self.wrist_tilt_bounds()
+        
+        #print('wrist bounds:',c_low,c_high)
+        #print('d:',d)
+        #print('R:',R)
+        
+        if R>=c_high+d:
+            #print('returning since',R,">=",c_high,'+',d)
+            xp,yp,dh=vec*c_high/R
+            h=self.LENGTHS[0]+self.LENGTHS[1]+dh
+            return xp,yp,h,theta
+        if R<=c_low:
+            #print('returning since',R,"<=",c_low)
+            return x,y,d,-90
+        
+        bounds=[np.radians(10),np.radians(90)] # bounds of angle from the point
+        dead_zone=[-theta,-theta] # cannot choose here
+        if c_high<R: 
+            ang=self.find_chord(R,c_high,d)
+            bounds[1]=min((-theta)+ang,bounds[1])
+            bounds[0]=max(bounds[0],(-theta)-ang)
+            #print('bounds:',np.degrees(bounds))
+        if R<=c_low+d:
+            ang=self.find_chord(R,c_low,d)
+            dead_zone[0]=max((-theta)-ang,bounds[0])
+            dead_zone[1]=min((-theta)+ang,bounds[1])
+            #print('dead zone:',np.degrees(dead_zone))
+        
+        
+        dead_area=dead_zone[1]-dead_zone[0]
+        rand=np.random.uniform(bounds[0],bounds[1]-dead_area)
+        if rand<=dead_zone[0]:
+            angle=rand
+        else:
+            angle=rand+dead_area
+            
+        h=np.sin(angle)*d
+        eaten=np.cos(angle)*d
+        xp,yp=vec[:2]*(r-eaten)/r
+        
+        #print(r-eaten,h,-np.degrees(angle))
+        
+        
+        return xp,yp,h,-np.degrees(angle)
         
     def cartesian_pick(self,x,y,h,sight_ang=0):
         r=np.linalg.norm([x,y])

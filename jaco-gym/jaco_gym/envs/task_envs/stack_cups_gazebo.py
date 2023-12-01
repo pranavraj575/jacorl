@@ -234,6 +234,4 @@ class JacoStackCupsGazebo(JacoGazeboEnv):
         finger_eff = joint_efforts[6]
         return finger_pos >= min_grab_pos and finger_eff >= min_grab_eff
 
-    def get_tip_coord(self):
-        return self.get_cartesian_points()[-1][-1]
     

@@ -59,6 +59,34 @@ class JacoGazeboEnv(JacoEnv):
         return np.array([x,y,z,roll,pitch,yaw])
 
     
+    def _inversion_check(self,name,tol=.02): 
+        # ignores rotation about z axis from starting position
+        # if object is not standing either upside down or the same as starting position, return -1
+        # if object is standing in the same position as start, return 0
+        # if object is upside down, return 1
+        (roll,pitch,yaw)=self.get_pose_eulerian(name)[3:]%(2*np.pi) # now only positives
+        roll_normal=bool(min(roll,abs(roll-2*np.pi))<=tol) # either roll is 0 or 2pi to make this true
+        roll_inversion=bool(abs(np.pi-roll)<=tol) # roll is pi to make this true
+        if not (roll_normal or roll_inversion):
+            return -1 # not standing up or inverted, fell over
+        
+        pitch_normal=bool(min(pitch,abs(pitch-2*np.pi))<=tol)
+        pitch_inversion=bool(abs(np.pi-abs(pitch))<=tol)
+        if not (pitch_normal or pitch_inversion):
+            return -1 # not standing up or inverted, fell over
+        return int(roll_inversion^pitch_inversion) #returns 1 if exactly one of these are true (i.e if cup is flipped once), 0 if inverted twice or nonce
+    
+    def is_standing_up(self,name,tol=.02):
+        #returns if object is only rotated about z axis. (if the object is still standing in the same starting position)
+        return self._inversion_check(name,tol)==0
+        
+    def _is_upside_down(self,name):
+        #returns if object named name is flipped (ignoring rotation on z axis, if object is exactly upside down)
+        return self._inversion_check(name)==1
+    
+    def _is_fallen_over(self,name):
+        #returns if object named name is fallen over
+        return self._inversion_check(name)==-1
     #========================= OBJECT EDITING ==========================#
     def object_exists(self,name):
         return name in self.get_object_dict()
