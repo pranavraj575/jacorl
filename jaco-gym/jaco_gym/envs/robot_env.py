@@ -472,6 +472,8 @@ class JacoEnv(gym.Env):
             ang=self.find_chord(R,c_low,d)
             dead_zone[0]=max((-theta)-ang,bounds[0])
             dead_zone[1]=min((-theta)+ang,bounds[1])
+            
+            bounds[0]=dead_zone[0] # ADDED to remove weird bug, 
             #print('dead zone:',np.degrees(dead_zone))
         
         
