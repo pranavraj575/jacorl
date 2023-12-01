@@ -15,22 +15,9 @@ try:
     stuff=rostopic.get_topic_list()
 except: 
     raise Exception('ROS is not running, did u open either the gazebo simulator or the kortex driver (if real robot)? you could also just try waiting like 2 seconds before running this omg')
-    
-def recurse_search_str(thing,search):
-    if thing is None: 
-        return search is None
-    if type(thing)==str:
-        return search in thing
-    return any([recurse_search_str(t,search) for t in thing])
 
-if recurse_search_str(stuff,'gazebo'):
-    env_id='JacoCupsGazebo-v0'
-    print("SIMULATION DETECTED, using env",env_id)
-else:
-    env_id='BasicJacoEnv-v0'
-    print("SIMULATION NOT DETECTED, using env",env_id)
           
-
+env_id='JacoMultiCupGrabGazebo-v0'
 env = gym.make(env_id)
 
 ## It will check your custom environment and output additional warnings if needed
@@ -62,15 +49,25 @@ for episode in range(3):
     obs = env.reset()
     # env.save_image(str(episode)+".jpg",mode='depth')
     # env.save_image(str(episode)+"_color.jpg", mode='color')
-    pick_pos = env.get_object_dict()['cup1']
-    place_pos = env.get_object_dict()['cup2']
+    pick_pos = env.get_object_dict()['cup0']
+    place_pos = env.get_object_dict()['cup1']
+    
+    model_file_names=[f for (_,f) in env.ordered_names]
     
     color_img = env.get_image_numpy(mode='color')
     depth_img = env.get_image_numpy(mode='depth')
-    sample = {	"pick_action" : pick_pos,
+    
+    color_att_img = env.get_image_numpy(mode='color',cam_type='attached')
+    depth_att_img = env.get_image_numpy(mode='depth',cam_type='attached')
+    sample = {	
+        "pick_action" : pick_pos,
     		"place_action" : place_pos,
     		"color_img" : color_img,
-    		"depth_img" : depth_img }
+    		"depth_img" : depth_img,
+    		"color_att_img" : color_att_img,
+    		"depth_att_img" : depth_att_img,
+        "model_file_names" : model_file_names,
+        }
 	
     with open(f"task{episode}.pkl", "wb") as f:
     	pickle.dump(sample, f)

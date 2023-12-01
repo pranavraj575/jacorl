@@ -154,12 +154,12 @@ class JacoMultiGrabCupGazebo(JacoGazeboEnv):
             cup_positions.append((x,y,.065 if not yikes else .1))
             
             
-            model_name=np.random.choice(self.model_file_names)
+            model_file_name=np.random.choice(self.model_file_names)
             
             obj_name='cup'+str(i)
-            self.ordered_names.append((obj_name,model_name))
+            self.ordered_names.append((obj_name,model_file_name))
             
-            self.spawn_model_from_name(model_name,obj_name,(x,y,.065 if not yikes else .1),rot)
+            self.spawn_model_from_name(model_file_name,obj_name,(x,y,.065 if not yikes else .1),rot)
         
     #========================= CUP INFORMATION ==========================#
         
