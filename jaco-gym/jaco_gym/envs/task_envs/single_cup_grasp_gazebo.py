@@ -71,7 +71,31 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         #print("Here")
         return 21+1*6
 
+    def robot_holding_cup_position(self,min_grab_pos=0.209, min_grab_eff=1.05e-1): 
+        joint_positions,_,joint_efforts = self.get_joint_state()
+        finger_pos = joint_positions[6]
+        finger_eff = joint_efforts[6]
+        return finger_pos >= min_grab_pos and finger_eff >= min_grab_eff
+        
     def get_reward_done(self):
+        debug=True
+        if debug:
+            print("\n--------------------")
+        tip_coord = self.get_cartesian_points()[-1][-1] # should be max extension of fingers
+        grabby_coord=self.get_cartesian_points()[-1][-2] # should be about where 'inside hand' is
+        cup_p=self.get_pose_eulerian("cup")
+        dist_to_cup=np.linalg.norm(cup_p[:3]-tip_coord)
+        obj_dict=self.get_object_dict()
+        grabbed_cup=True
+        if not self.robot_holding_cup_position():
+            grabbed_cup=False
+        if dist_to_cup>.05:
+            grabbed_cup=False
+        
+        
+        if debug and grabbed_cup:
+            print("cup grasp detected")
+        
         return 0, False
     
     #========================= RESETTING ENVIRONMENT ==========================#
