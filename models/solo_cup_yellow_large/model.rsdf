@@ -23,7 +23,7 @@
 
 %>
 <sdf version="1.5">
-  <model name="solo_cup_yellow">
+  <model name="solo_cup_yellow_large">
     <link name="link">
       <pose>0 0 <%= h/2 %> 0 0 0</pose>
       <inertial>
@@ -41,7 +41,7 @@
       <collision name="collision">
         <geometry>
           <mesh>
-            <uri>model://solo_cup/meshes/solo_cup.dae</uri>
+            <uri>model://solo_cup_large/meshes/solo_cup.dae</uri>
           </mesh>
         </geometry>
         <surface>
@@ -57,7 +57,7 @@
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>model://solo_cup/meshes/solo_cup.dae</uri>
+            <uri>model://solo_cup_large/meshes/solo_cup.dae</uri>
           </mesh>
         </geometry>
         <material>
