@@ -8,6 +8,7 @@ from PIL import Image as IMG
 import rostopic
 import pickle
 import os
+import time
 
 rospy.init_node("test_client", log_level=rospy.INFO)
 
@@ -44,13 +45,14 @@ render_flag=True
 
 old_raw = None
 
-for episode in range(3):
+for episode in range(10000):
     #run rostopic list to get all topics being published (while robot running)
     obs = env.reset()
+    time.sleep(1)
     # env.save_image(str(episode)+".jpg",mode='depth')
     # env.save_image(str(episode)+"_color.jpg", mode='color')
-    pick_pos = env.get_object_dict()['cup0']
-    place_pos = env.get_object_dict()['cup1']
+    pick_pos = env.get_pose_eulerian('cup0')
+    place_pos = env.get_pose_eulerian('cup1')
     
     model_file_names=[f for (_,f) in env.ordered_names]
     

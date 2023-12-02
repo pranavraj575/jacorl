@@ -43,7 +43,7 @@ class JacoMultiGrabCupGazebo(JacoGazeboEnv):
                                 "solo_cup_large",
                                 "solo_cup_small",
                                 "solo_cup_yellow",
-                                "solo_cup_yellow_large",
+                                #"solo_cup_yellow_large",
                                 "solo_cup_yellow_small",
                               ]
         self.ordered_names=[]

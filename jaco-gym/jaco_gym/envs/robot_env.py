@@ -142,7 +142,7 @@ class JacoEnv(gym.Env):
         self._clear_faults()
         self._notif_subscription() # Activate the action notifications
 
-    #========================== REQUIRED FUNCTIONS ============================#
+    #========================== GYM FUNCTIONS ============================#
 
     def step(self,action):
         old_pos=np.degrees(self.get_joint_state()[0][:6]) #First 6 elements are the joints
@@ -161,6 +161,12 @@ class JacoEnv(gym.Env):
         self.move_arm(self.init_pos)
         obs=np.array([])
         return obs
+    
+    def close(self):
+        super().close()
+        self.move_fingy(0)
+        self.move_arm(self.init_pos)
+        
         
     #========================== OBSERVATION FUNCTIONS ============================#
     

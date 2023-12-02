@@ -44,6 +44,10 @@ class JacoGazeboEnv(JacoEnv):
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
 
+    #========================== GYM FUNCTIONS ============================#
+    def close(self):
+        super().close()
+        self.despawn_all()
     
     #========================= OBSERVATION, REWARD ============================#
     def get_object_dict(self):
