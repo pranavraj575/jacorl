@@ -100,7 +100,7 @@ class JacoGazeboEnv(JacoEnv):
             while not self.object_exists(name):
                 pose=Pose()
                 (pose.position.x,pose.position.y,pose.position.z)=position
-                if orientation:
+                if orientation is not None:
                     (roll,pitch,yaw)=orientation
                     stuff=Rotation.from_euler('xyz',(roll,pitch,yaw)).as_quat()
                     (pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w)=stuff
