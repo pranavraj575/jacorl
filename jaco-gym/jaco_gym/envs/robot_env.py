@@ -436,7 +436,14 @@ class JacoEnv(gym.Env):
         a=(d**2-c**2+R**2)/(2*R)
         return np.arccos(a/d)
         
-    def look_at_point(self,x,y,sight_dist=.3): 
+    def look_at_point(self,x,y,z=0.,sight_dist=.3,preferred_angle=None):
+        # moves arm to look at specified point
+        # sight_dist is how far away to look at point
+        x,y,h,deg=self.how_to_look_at_point(x=x,y=y,z=z,sight_dist=sight_dist,preferred_angle=preferred_angle)
+        self.cartesian_pick(x,y,h,deg)
+        
+        
+    def how_to_look_at_point(self,x,y,z,sight_dist,preferred_angle=None): 
         # returns x,y,h,deg to look at point on table
         # sight_dist is how far away to look at point
         temp=np.array((x,y))
@@ -445,7 +452,7 @@ class JacoEnv(gym.Env):
         x,y=temp*new_r/r
         
         
-        vec=np.array((x,y,-self.LENGTHS[0]-self.LENGTHS[1])) # vector to point
+        vec=np.array((x,y,z-self.LENGTHS[0]-self.LENGTHS[1])) # vector to point from shoulder
         R=np.linalg.norm(vec)
         r=np.linalg.norm(vec[:2])
         theta=np.arctan2(vec[2],r) # angle from arm shoulder to point
@@ -467,7 +474,7 @@ class JacoEnv(gym.Env):
             #print('returning since',R,"<=",c_low)
             return x,y,d,-90
         
-        bounds=[np.radians(10),np.radians(90)] # bounds of angle from the point
+        bounds=[np.radians(0),np.radians(90)] # bounds of angle from the point
         dead_zone=[-theta,-theta] # cannot choose here
         if c_high<R: 
             ang=self.find_chord(R,c_high,d)
@@ -481,14 +488,24 @@ class JacoEnv(gym.Env):
             
             bounds[0]=dead_zone[0] # ADDED to remove weird bug, 
             #print('dead zone:',np.degrees(dead_zone))
-        
-        
-        dead_area=dead_zone[1]-dead_zone[0]
-        rand=np.random.uniform(bounds[0],bounds[1]-dead_area)
-        if rand<=dead_zone[0]:
-            angle=rand
+        if preferred_angle is not None:
+            if preferred_angle<bounds[0]:
+                preferred_angle=bounds[0]
+            if preferred_angle>bounds[1]:
+                preferred_angle=bounds[1]
+            if preferred_angle>dead_zone[0] and preferred_angle<dead_zone[1]:
+                if preferred_angle-dead_zone[0]>dead_zone[1]-preferred_angle:
+                    preferred_angle=dead_zone[1]
+                else:
+                    preferred_angle=dead_zone[0]
+            angle=preferred_angle
         else:
-            angle=rand+dead_area
+            dead_area=dead_zone[1]-dead_zone[0]
+            rand=np.random.uniform(bounds[0],bounds[1]-dead_area)
+            if rand<=dead_zone[0]:
+                angle=rand
+            else:
+                angle=rand+dead_area
             
         h=np.sin(angle)*d
         eaten=np.cos(angle)*d

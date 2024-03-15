@@ -44,6 +44,7 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
         return obs,REWARD,DONE,INFO
     
     def reset(self):
+        self.despawn_all()
         joint_obs=super().reset()
         self.reset_cup()
         #print('RESETTING CUPS')
@@ -106,7 +107,6 @@ class JacoGrabCupGazebo(JacoGazeboEnv):
     def reset_cup(self,prob_stand=1,prob_flip=0,prob_other=0): # input the probabilities that the cup is spawned normal, flipped, or fallen
         #print("RESETTing")
         # generate random new cup positions
-        self.despawn_all()
         
         arr=np.random.random()
         yikes=False

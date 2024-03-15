@@ -2,6 +2,7 @@ from gazebo_msgs.msg import LinkStates, ModelState, ModelStates
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import DeleteModel, SpawnModel
 from jaco_gym.envs.gazebo_env import JacoGazeboEnv
+from jaco_gym.envs.task_envs.jenga.tower import Tower, JENGA_BLOCK_DIM
 import numpy as np
 import rospy
 import math
@@ -27,11 +28,9 @@ class JacoJengaZebo(JacoGazeboEnv):
 
         # task specific stuff
         
-        self.spawn_point=np.array((.25,-.25,0.))
+        self.spawn_point=np.array((.35,-.25,0.))
         self.block_model="jenga_block"
-        self.block_dim=np.array((.075,.025,.015))
-        self.spacing=.005
-        self.variance=.002
+        
         
 
     def step(self,action):
@@ -43,9 +42,9 @@ class JacoJengaZebo(JacoGazeboEnv):
         return obs,REWARD,DONE,INFO
     
     def reset(self):
-        self.reset_tower()
-        #print('RESETTING CUPS')
+        self.despawn_all()
         joint_obs=super().reset()
+        self.build_basic_tower()
         obs=self.get_obs()
         return obs
     
@@ -80,35 +79,45 @@ class JacoJengaZebo(JacoGazeboEnv):
         return 1,False
     
     #========================= RESETTING ENVIRONMENT ==========================#
-    def angle_wiggle(self):
-        return np.array((0.,0.,np.random.normal(0,self.variance*2*np.pi)))
-        
-    def pos_wiggle(self):
-        return np.random.normal(0,self.variance,3)
-        
-    def build_basic_tower(self,n=18,randomness=True):
-        for h in range(n):
+
+    
+    def build_tower(self,tower:Tower):
+        for h in range(tower.height):
             for i in range(3):
-                identifier='block_'+str(h)+'_'+str(i) # height, number of block
-                rot=np.array((0.,0.,(h%2)*np.pi/2)) # rotate if odd level
-                offset=np.zeros(3)
-                offset+=(0,0,h*self.block_dim[2]) # height of level
-                width=self.block_dim[1]
-                if h%2:
-                    offset+=((i-1)*(width+self.spacing),0,0)
-                else:
-                    offset+=(0,(i-1)*(width+self.spacing),0)
-                pos=offset+self.spawn_point
-                if randomness:
-                    rot+=self.angle_wiggle()
-                    pos+=self.pos_wiggle()
-                self.spawn_model_from_name(self.block_model,identifier,pos,rot)
-                
-    def reset_tower(self):
-        #print("RESETTing")
-        # generate random new cup positions
-        self.despawn_all()
-        self.build_basic_tower()
+                if tower.blocks[h][i]:
+                    dic=tower.block_info[h][i]
+                    identifier='block_'+str(h)+'_'+str(i)
+                    
+                    self.spawn_model_from_name(self.block_model,identifier,dic['pos'],dic['rot'])
+        
+        return
+        for h in range(tower.height):
+            for i in range(3):
+                if tower.blocks[h][i]:
+                    identifier='block_'+str(h)+'_'+str(i) # height, number of block
+                    rot=np.array((0.,0.,(h%2)*np.pi/2)) # rotate if odd level
+                    offset=np.zeros(3)
+                    offset+=(0,0,h*JENGA_BLOCK_DIM[2]) # height of level
+                    width=JENGA_BLOCK_DIM[1]
+                    if h%2:
+                        offset+=((i-1)*(width+tower.spacing),0,0)
+                    else:
+                        offset+=(0,(i-1)*(width+tower.spacing),0)
+                    pos=offset+self.spawn_point
+                    if randomness:
+                        rot+=tower.angle_wiggle()
+                        pos+=tower.pos_wiggle()
+                    self.spawn_model_from_name(self.block_model,identifier,pos,rot)
+
+        
+    def build_basic_tower(self,n=5,randomness=True):
+        
+        tower=Tower(  
+                      blocks=[[True,True,True] for _ in range(n)],
+                      spawn_point=self.spawn_point,
+                      variance=.0015 if randomness else 0.
+                      )
+        self.build_tower(tower=tower)
     
 
     
