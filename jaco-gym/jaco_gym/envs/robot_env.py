@@ -440,16 +440,19 @@ class JacoEnv(gym.Env):
         # moves arm to look at specified point
         # sight_dist is how far away to look at point
         x,y,h,deg=self.how_to_look_at_point(x=x,y=y,z=z,sight_dist=sight_dist,preferred_angle=preferred_angle)
+        
         self.cartesian_pick(x,y,h,deg)
         
         
     def how_to_look_at_point(self,x,y,z,sight_dist,preferred_angle=None): 
-        # returns x,y,h,deg to look at point on table
+        # returns x,y,h,deg of wrist joint to look at point on table
         # sight_dist is how far away to look at point
-        temp=np.array((x,y))
-        r=np.linalg.norm(temp)
-        new_r=max(r-.04,.04)
-        x,y=temp*new_r/r
+        
+        
+        #temp=np.array((x,y))
+        #r=np.linalg.norm(np.array((x,y)))
+        #new_r=max(r-.04,.04)
+        #x,y=temp*new_r/r
         
         
         vec=np.array((x,y,z-self.LENGTHS[0]-self.LENGTHS[1])) # vector to point from shoulder
@@ -459,6 +462,7 @@ class JacoEnv(gym.Env):
         
         
         d=sight_dist+self.LENGTHS[5]+self.LENGTHS[6] # this is how far the wrist tilt joint should be
+        
         c_low,c_high = self.wrist_tilt_bounds()
         
         #print('wrist bounds:',c_low,c_high)
@@ -467,36 +471,66 @@ class JacoEnv(gym.Env):
         
         if R>=c_high+d:
             #print('returning since',R,">=",c_high,'+',d)
+            
+            # in this case, we want to put the joint c_high away
+            # we just rescale vec by c_high/R
+            
             xp,yp,dh=vec*c_high/R
+            # h is the hight over TABLE, dh is height wrt shoulder joint
             h=self.LENGTHS[0]+self.LENGTHS[1]+dh
+            
             return xp,yp,h,theta
         if R<=c_low:
             #print('returning since',R,"<=",c_low)
-            return x,y,d,-90
+            
+            # best we can do is just look directly above it
+            
+            # height over table is d plus the original z
+            h=d+z
+            return x,y,h,-90
         
         bounds=[np.radians(0),np.radians(90)] # bounds of angle from the point
         dead_zone=[-theta,-theta] # cannot choose here
-        if c_high<R: 
+        
+        
+        # this is the point directly above our desired point
+        # if we cannot reach this point, we must limit the angles we look at
+        point_above=vec.copy()
+        point_above[2]+=d
+        apex_wrist_length=np.linalg.norm(point_above)
+        # c_high must be at least the distance to this point to see it
+        if c_high<apex_wrist_length:
             ang=self.find_chord(R,c_high,d)
             bounds[1]=min((-theta)+ang,bounds[1])
-            bounds[0]=max(bounds[0],(-theta)-ang)
-            #print('bounds:',np.degrees(bounds))
+            # bounds[0]=max(bounds[0],(-theta)-ang)
+            # print('bounds update:',np.degrees(bounds))
         if R<=c_low+d:
             ang=self.find_chord(R,c_low,d)
             dead_zone[0]=max((-theta)-ang,bounds[0])
             dead_zone[1]=min((-theta)+ang,bounds[1])
             
             bounds[0]=dead_zone[0] # ADDED to remove weird bug, 
-            #print('dead zone:',np.degrees(dead_zone))
+            # print('dead zone update:',np.degrees(dead_zone))
+        
         if preferred_angle is not None:
             if preferred_angle<bounds[0]:
                 preferred_angle=bounds[0]
             if preferred_angle>bounds[1]:
                 preferred_angle=bounds[1]
-            if preferred_angle>dead_zone[0] and preferred_angle<dead_zone[1]:
-                if preferred_angle-dead_zone[0]>dead_zone[1]-preferred_angle:
+            if preferred_angle>=dead_zone[0] and preferred_angle<=dead_zone[1]:
+                # here check each endpoint to see which is closer
+                # also check if its within bounds exclusive
+                
+                # first preference, the closest among the dead_zone endpoints
+                if preferred_angle-dead_zone[0]>dead_zone[1]-preferred_angle and (dead_zone[1]<bounds[1] and dead_zone[1]>bounds[0]):
                     preferred_angle=dead_zone[1]
-                else:
+                elif preferred_angle-dead_zone[0]<dead_zone[1]-preferred_angle and (dead_zone[0]<bounds[1] and dead_zone[0]>bounds[0]):
+                    preferred_angle=dead_zone[0]
+                    
+                # next preference, whichever endpoint is valid
+                elif dead_zone[1]<bounds[1] and dead_zone[1]>bounds[0]:
+                    preferred_angle=dead_zone[1]
+                elif dead_zone[0]<bounds[1] and dead_zone[0]>bounds[0]:
                     preferred_angle=dead_zone[0]
             angle=preferred_angle
         else:
@@ -506,47 +540,76 @@ class JacoEnv(gym.Env):
                 angle=rand
             else:
                 angle=rand+dead_area
-            
+        
         h=np.sin(angle)*d
         eaten=np.cos(angle)*d
         xp,yp=vec[:2]*(r-eaten)/r
-        
-        #print(r-eaten,h,-np.degrees(angle))
         
         
         return xp,yp,h,-np.degrees(angle)
         
     def cartesian_pick(self,x,y,h,sight_ang=0):
+        # moves WRIST TILT JOINT to this position
+        
+        # r is the xy distance
         r=np.linalg.norm([x,y])
+        # psi is the angle in xy plane to rotate arm
         psi=np.arctan2(y,x)
+        
+        # h is now the relative height from the shoulder joint
         h_0=self.LENGTHS[0]+self.LENGTHS[1]
         h-=h_0
         
+        # a is shoulder joint to elbow joint
         a=self.LENGTHS[2]
-        b=self.LENGTHS[3]+self.LENGTHS[4]        
+        # b is elbow joint to wrist joint
+        b=self.LENGTHS[3]+self.LENGTHS[4]
+        
+        # consider triangle made by ab 
+        # call c the bottom part of the triangle (shoulder to wrist)
+        # these are the bounds on possible c (must be within [c_low,c_high])        
         c_low,c_high=self.wrist_tilt_bounds()
         
+        # desired c        
         c=np.sqrt(h**2+r**2)
         if c>c_high: 
             print('reach out of bounds, going close')
+            # in this case c=c_high
+            # we must scale everything by c_high/c 
             h=h*(c_high)/c
             r=r*(c_high)/c
             c=c_high
         if c==0:
             print('error, tried going to (x,y,h-h0)=(0,0,0)')
+            # we should not hit this case ever
             h=.01
             r=.01
             c=np.sqrt(h**2+r**2)
         if c<c_low:
+            # in this case c=c_low
+            # we must scale everything by c_low/c 
             print('reach out of bounds, going close')
             h=h*c_low/c
             r=r*c_low/c
             c=c_low
+        
+        # law of cosines
+        # theta is angle ab
+        # 2|a||b|*cos(theta)=|a|^2+|b|^2-|c|^2
         theta=np.arccos((a**2+b**2-c**2)/(2*a*b))
         
-        y=np.arctan2(h,r)
-        x=np.arccos((a**2+c**2-b**2)/(2*a*c))
-        phi=np.pi/2-x-y
+        
+        # this should be the angle that c makes with the table
+        phi_prime=np.arctan2(h,r)
+        
+        # law of cosines again for angle ac
+        # 2|a||c|*cos(ac)=|a|^2+|c|^2-|b|^2
+        ac=np.arccos((a**2+c**2-b**2)/(2*a*c))
+        
+        # calculate real phi
+        # ac+phi_prime is the correct angle from table
+        # phi is the angle from vertical
+        phi=np.pi/2-ac-phi_prime
         
         
         self.move_arm((-np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,np.degrees(phi-theta)+90+sight_ang,90))
