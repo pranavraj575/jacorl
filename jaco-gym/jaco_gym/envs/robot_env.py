@@ -203,9 +203,11 @@ class JacoEnv(gym.Env):
         self.effort=np.array(curr.effort)[indices]
         return self.position,self.velocity,self.effort
     
-    def _get_points_and_bases(self,joint_angles=None):
+    def get_points_and_bases(self,joint_angles=None):
         # returns points of each joint, calculated with trig
+        #  list of 8 points (representing basepoint and each joint and gripper base) and a 9th element of a list of a bunch of points on the gripper
         # also returns a basis at each joint
+        #  list of 7 basis matrices, representing the base (identity), and each joint in order
         #  3x3 matrix, the columns are basis vectors
         #  x,y,z, where z points 'up' the arm
         # uses joint_angles if given, otherwise uses the actual joint angles of the robot
@@ -226,47 +228,45 @@ class JacoEnv(gym.Env):
         
         # base rotation joint
         pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
-        # note basis does not change here
+        basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # shoulder joint
-        basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
         pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
+        basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # elbow joint
-        basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
         pos+=self.LENGTHS[2]*basis[:,2] # along z again
+        basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # arm rotation joint
-        basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
         pos+=self.LENGTHS[3]*basis[:,2] # along z
+        basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # wrist flipping joint
-        basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
         pos+=self.LENGTHS[4]*basis[:,2]
+        basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # wrist rotation joint
-        basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
         pos+=self.LENGTHS[5]*basis[:,2]
+        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
         positions.append(pos.copy()) 
         bases.append(basis.copy())
         
         # gripper base
-        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
         #NOTE: camera is positioned on the -y direction of the final joint
         # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
         pos+=self.LENGTHS[6]*basis[:,2]
         positions.append(pos.copy()) 
-        bases.append(basis.copy())
         
         # more gripper positions
         gripper_positions=[]
@@ -282,46 +282,8 @@ class JacoEnv(gym.Env):
         # returns points of each joint, calculated with trig
         # uses joint_angles if given, otherwise uses the actual joint angles of the robot
         # joint_angles should be a list of 6 angles (in radians)
-        positions,bases=self._get_points_and_bases(joint_angles=joint_angles)
+        positions,bases=self.get_points_and_bases(joint_angles=joint_angles)
         return positions
-        
-        """
-        if joint_angles is None:
-            joint_angles,_,_=self.get_joint_state()
-        
-        pos=np.array([0.,0.,0.]) # keeps track of position
-        bottom=pos.copy() # included for completion
-        basis=np.identity(3) # keeps track of rotation, column vectors are the basis
-        
-        pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
-        base_rot_joint=pos.copy()
-        basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
-        pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
-        shoulder_joint=pos.copy()
-        basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
-        pos+=self.LENGTHS[2]*basis[:,2] # along z again
-        elbow_joint=pos.copy()
-        basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
-        pos+=self.LENGTHS[3]*basis[:,2] # along z
-        rot_joint=pos.copy()
-        basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
-        pos+=self.LENGTHS[4]*basis[:,2]
-        wrist_flip_joint=pos.copy()
-        basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
-        pos+=self.LENGTHS[5]*basis[:,2]
-        wrist_joint=pos.copy()
-        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
-        #NOTE: camera is positioned on the -y direction of the final joint
-        # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
-        pos+=self.LENGTHS[6]*basis[:,2]
-        gripper_base=pos.copy()
-        gripper_positions=[]
-        for leng in self.LENGTHS[7:]:
-            pos+=leng*basis[:,2]
-            gripper_positions.append(pos.copy())
-        return bottom, base_rot_joint,shoulder_joint,elbow_joint,rot_joint,wrist_flip_joint,wrist_joint,gripper_base,gripper_positions
-        # Gripper positions has palm of hand, and other data
-        """
 
     def get_tip_coord(self):
         return self.get_cartesian_points()[-1][-1]
@@ -547,23 +509,46 @@ class JacoEnv(gym.Env):
         (a0,a1,a2),wrist_point = self.how_to_put_wrist_here(wrist_point)
         wrist_vec=vec-wrist_point # vector from wrist to point to look at
         
-        wrist_basis=self._get_points_and_bases(joint_angles=(a0,a1,a2,0,0,0))[1][6]
+        wrist_basis=self.get_points_and_bases(joint_angles=(a0,a1,a2,0,0,0))[1][5]
         wrist_vec_p=wrist_basis.T@wrist_vec # from wrist basis
         a3=-np.arctan2(wrist_vec_p[1],wrist_vec_p[0]) # rotate the arm to make the wrist flip in the correct direction
         
         # now do it again with new rotation
-        wrist_basis=self._get_points_and_bases(joint_angles=(a0,a1,a2,a3,0,0))[1][6]
+        wrist_basis=self.get_points_and_bases(joint_angles=(a0,a1,a2,a3,0,0))[1][5]
         wrist_vec_p=wrist_basis.T@wrist_vec # from wrist basis
         # this should now look like [v_0,0,v_2]
         
         a4=-np.arctan2(wrist_vec_p[0],wrist_vec_p[2]) # how much to tilt arm  
         
-        # TODO: fix the last angle to look straight at the thingy
-        #grip_basis=self._get_points_and_bases(joint_angles=(a0,a1,a2,a3,a4,0))[1][7]
+        grip_basis=self.get_points_and_bases(joint_angles=(a0,a1,a2,a3,a4,0))[1][6]
+        
+        pointing=grip_basis[:,2]
         
         
+        # cross product of direction arm is pointing and straight up
+        # should point orthonormally sideways from robot arm
+        sideways=np.cross(pointing,(0,0,1))
+        if np.linalg.norm(sideways)<=1e-10:
+            sideways=np.cross(pointing,(1,0,0)) # if directly above, just look in the x direction
+        sideways=sideways/np.linalg.norm(sideways)
+
         
-        self.move_arm((a0,a1,a2,a3,a4,np.pi/2),degrees=False)
+        a5=-np.arccos(np.clip(np.dot(sideways,grip_basis[:,0]),-1.,1.))
+        
+        grip_basis=self.get_points_and_bases(joint_angles=(a0,a1,a2,a3,a4,a5))[1][6]
+        # now since we were not careful with the cross product, we should reorient everything
+        
+        if np.dot(-grip_basis[:,1],(0,0,1))<0:
+            # (high priority) otherwise, align with z axis (level out camera)
+            # i.e. if upside down, just flip by pi
+            a5+=np.pi
+        if abs(np.dot(grip_basis[:,2],(0,0,1)))>=1 and np.dot(-grip_basis[:,1],(1,0,0))<0:
+            #(low priority) if looking from above, align camera 'up' with x axis
+            a5+=np.pi
+        
+        grip_basis=self.get_points_and_bases(joint_angles=(a0,a1,a2,a3,a4,a5))[1][6]
+        
+        self.move_arm((a0,a1,a2,a3,a4,a5),degrees=False)
         
     
     def how_to_put_wrist_here(self, pos):
@@ -772,197 +757,3 @@ class JacoEnv(gym.Env):
         
     def render(self, mode='human', close=False):
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def old_look_at_point(self,x,y,z=0.,sight_dist=.3,preferred_angle=None):
-        # moves arm to look at specified point
-        # sight_dist is how far away to look at point
-        x,y,h,deg=self.old_how_to_look_at_point(x=x,y=y,z=z,sight_dist=sight_dist,preferred_angle=preferred_angle)
-        
-        self.old_cartesian_pick(x,y,h,deg)
-    def old_how_to_look_at_point(self,x,y,z,sight_dist,preferred_angle=None): 
-        # returns x,y,h,deg of wrist joint to look at point on table
-        # sight_dist is how far away to look at point
-        
-        
-        #temp=np.array((x,y))
-        #r=np.linalg.norm(np.array((x,y)))
-        #new_r=max(r-.04,.04)
-        #x,y=temp*new_r/r
-        
-        
-        vec=np.array((x,y,z-self.LENGTHS[0]-self.LENGTHS[1])) # vector to point from shoulder
-        R=np.linalg.norm(vec)
-        r=np.linalg.norm(vec[:2])
-        theta=np.arctan2(vec[2],r) # angle from arm shoulder to point
-        
-        
-        d=sight_dist+self.LENGTHS[5]+self.LENGTHS[6] # this is how far the wrist tilt joint should be
-        
-        c_low,c_high = self.wrist_tilt_bounds()
-        
-        #print('wrist bounds:',c_low,c_high)
-        #print('d:',d)
-        #print('R:',R)
-        
-        if R>=c_high+d:
-            #print('returning since',R,">=",c_high,'+',d)
-            
-            # in this case, we want to put the joint c_high away
-            # we just rescale vec by c_high/R
-            
-            xp,yp,dh=vec*c_high/R
-            # h is the hight over TABLE, dh is height wrt shoulder joint
-            h=self.LENGTHS[0]+self.LENGTHS[1]+dh
-            
-            return xp,yp,h,theta
-        if R<=c_low:
-            #print('returning since',R,"<=",c_low)
-            
-            # best we can do is just look directly above it
-            
-            # height over table is d plus the original z
-            h=d+z
-            return x,y,h,-90
-        
-        bounds=[np.radians(0),np.radians(90)] # bounds of angle from the point
-        dead_zone=[-theta,-theta] # cannot choose here
-        
-        
-        # this is the point directly above our desired point
-        # if we cannot reach this point, we must limit the angles we look at
-        point_above=vec.copy()
-        point_above[2]+=d
-        apex_wrist_length=np.linalg.norm(point_above)
-        # c_high must be at least the distance to this point to see it
-        if c_high<apex_wrist_length:
-            ang=self.find_chord(R,c_high,d)
-            bounds[1]=min((-theta)+ang,bounds[1])
-            # bounds[0]=max(bounds[0],(-theta)-ang)
-            # print('bounds update:',np.degrees(bounds))
-        if R<=c_low+d:
-            ang=self.find_chord(R,c_low,d)
-            dead_zone[0]=max((-theta)-ang,bounds[0])
-            dead_zone[1]=min((-theta)+ang,bounds[1])
-            
-            bounds[0]=dead_zone[0] # ADDED to remove weird bug, 
-            # print('dead zone update:',np.degrees(dead_zone))
-        
-        if preferred_angle is not None:
-            if preferred_angle<bounds[0]:
-                preferred_angle=bounds[0]
-            if preferred_angle>bounds[1]:
-                preferred_angle=bounds[1]
-            if preferred_angle>=dead_zone[0] and preferred_angle<=dead_zone[1]:
-                # here check each endpoint to see which is closer
-                # also check if its within bounds exclusive
-                
-                # first preference, the closest among the dead_zone endpoints
-                if preferred_angle-dead_zone[0]>dead_zone[1]-preferred_angle and (dead_zone[1]<bounds[1] and dead_zone[1]>bounds[0]):
-                    preferred_angle=dead_zone[1]
-                elif preferred_angle-dead_zone[0]<dead_zone[1]-preferred_angle and (dead_zone[0]<bounds[1] and dead_zone[0]>bounds[0]):
-                    preferred_angle=dead_zone[0]
-                    
-                # next preference, whichever endpoint is valid
-                elif dead_zone[1]<bounds[1] and dead_zone[1]>bounds[0]:
-                    preferred_angle=dead_zone[1]
-                elif dead_zone[0]<bounds[1] and dead_zone[0]>bounds[0]:
-                    preferred_angle=dead_zone[0]
-            angle=preferred_angle
-        else:
-            dead_area=dead_zone[1]-dead_zone[0]
-            rand=np.random.uniform(bounds[0],bounds[1]-dead_area)
-            if rand<=dead_zone[0]:
-                angle=rand
-            else:
-                angle=rand+dead_area
-        
-        h=np.sin(angle)*d
-        eaten=np.cos(angle)*d
-        xp,yp=vec[:2]*(r-eaten)/r
-        
-        
-        return xp,yp,h,-np.degrees(angle)
-        
-    def old_cartesian_pick(self,x,y,h,sight_ang=0):
-        # moves WRIST TILT JOINT to this position
-        
-        # r is the xy distance
-        r=np.linalg.norm([x,y])
-        # psi is the angle in xy plane to rotate arm
-        psi=np.arctan2(y,x)
-        
-        # h is now the relative height from the shoulder joint
-        h_0=self.LENGTHS[0]+self.LENGTHS[1]
-        h-=h_0
-        
-        # a is shoulder joint to elbow joint
-        a=self.LENGTHS[2]
-        # b is elbow joint to wrist joint
-        b=self.LENGTHS[3]+self.LENGTHS[4]
-        
-        # consider triangle made by ab 
-        # call c the bottom part of the triangle (shoulder to wrist)
-        # these are the bounds on possible c (must be within [c_low,c_high])        
-        c_low,c_high=self.wrist_tilt_bounds()
-        
-        # desired c        
-        c=np.sqrt(h**2+r**2)
-        if c>c_high: 
-            print('reach out of bounds, going close')
-            # in this case c=c_high
-            # we must scale everything by c_high/c 
-            h=h*(c_high)/c
-            r=r*(c_high)/c
-            c=c_high
-        if c==0:
-            print('error, tried going to (x,y,h-h0)=(0,0,0)')
-            # we should not hit this case ever
-            h=.01
-            r=.01
-            c=np.sqrt(h**2+r**2)
-        if c<c_low:
-            # in this case c=c_low
-            # we must scale everything by c_low/c 
-            print('reach out of bounds, going close')
-            h=h*c_low/c
-            r=r*c_low/c
-            c=c_low
-        
-        # law of cosines
-        # theta is angle ab
-        # 2|a||b|*cos(theta)=|a|^2+|b|^2-|c|^2
-        theta=np.arccos((a**2+b**2-c**2)/(2*a*b))
-        
-        
-        # this should be the angle that c makes with the table
-        phi_prime=np.arctan2(h,r)
-        
-        # law of cosines again for angle ac
-        # 2|a||c|*cos(ac)=|a|^2+|c|^2-|b|^2
-        ac=np.arccos((a**2+c**2-b**2)/(2*a*c))
-        
-        # calculate real phi
-        # ac+phi_prime is the correct angle from table
-        # phi is the angle from vertical
-        phi=np.pi/2-ac-phi_prime
-        
-        
-        self.move_arm((-np.degrees(psi),np.degrees(phi),180+np.degrees(theta),0,np.degrees(phi-theta)+90+sight_ang,90),degrees=True)
