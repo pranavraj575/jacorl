@@ -484,7 +484,7 @@ class JacoEnv(gym.Env):
         return np.arccos(a/d)
         
     
-    def look_at_point(self,x,y,z=0.,sight_dist=.3,theta=0.,phi=0.):
+    def look_at_point(self,x,y,z=0.,sight_dist=.3,theta=0.,phi=0.,global_angles=False):
         # looks at point on table from sight_dist away
         # theta is the xy angle that it looks at the point
         #  theta=0 means the arm is looking straignt along the vector from the arm to the point
@@ -493,12 +493,17 @@ class JacoEnv(gym.Env):
         #  phi=0 is from straight on 
         #  phi>0 is looking down on tower
         #  phi=pi/2 is from directly above
+        # global angles is whether to use global angles
+        #  if false, angles are as described above
+        #  if true, theta=0 means 
         
         d=sight_dist+self.LENGTHS[5]+self.LENGTHS[6] # this is how far the wrist tilt joint should be
         vec=np.array((x,y,z))
-        
-        theta_0=np.arctan2(y,x) # xy angle from arm to point
-        theta_p=np.pi+theta_0+theta # angle from point to viewing point (must invert theta_0, then add theta)
+        if not global_angles:
+            theta_0=np.arctan2(y,x) # xy angle from arm to point
+            theta_p=np.pi+theta_0+theta # angle from point to viewing point (must invert theta_0, then add theta)
+        else:
+            theta_p=np.pi+theta
         
         wrist_point=vec+d*np.array((  # the point where the wrist should be
                                     np.cos(phi)*np.cos(theta_p),
