@@ -28,5 +28,7 @@ arm_degs=[]
 while not input('Press enter to record, type to exit:'):
     pos,_,_=env.get_joint_state()
     arm_degs.append(np.degrees(pos[:6]))
+    print(np.degrees(pos[:6]))
+    print(env.get_camera_rotation_and_position()[-1])
 np.save(aim,np.array(arm_degs))
 print(np.load(aim).shape)

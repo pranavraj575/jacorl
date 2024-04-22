@@ -60,6 +60,18 @@ class JacoEnv(gym.Env):
                       .0613, # 'palm' of hand to open fingertip
                       .0135, # open fingertip length to closed fingertip length
                       )
+        
+        self.LENGTHS_CAMERA=(.1564, # base to rotation joint
+                      .1284, # rotation joint to shoulder
+                      .410, # shoulder to elbow 
+                      .2085, # elbow to rotation joint
+                      .1059, # rotation joint to wrist tilt joint
+                      .1059, # wrist tilt to wrist rotation
+                      .0615, # wrist rotation joint to base of gripper
+                      -.0275, # x offset of end effector to camera
+                      -.066,  # y offset of end effector to camera
+                      -.00305, # z offset of end effector to camera
+        )
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
         high = np.inf * np.ones([self.obs_dim])
@@ -226,7 +238,7 @@ class JacoEnv(gym.Env):
         basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
         pos+=self.LENGTHS[5]*basis[:,2]
         wrist_joint=pos.copy()
-        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again 
+        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again
         #NOTE: camera is positioned on the -y direction of the final joint
         # camera_pos=pos+ camera_dist * basis[:,2] + camera_height * (-basis[:,1])
         pos+=self.LENGTHS[6]*basis[:,2]
@@ -239,7 +251,65 @@ class JacoEnv(gym.Env):
         # Gripper positions has palm of hand, and other data
 
     def get_tip_coord(self):
-        return self.get_cartesian_points()[-1][-1]
+        return self.get_camera_rotation_and_position()[-1]
+    
+    def get_camera_rotation_and_position(self):
+        joint_angles,_,_=self.get_joint_state()
+        pos=np.array([0.,0.,0.]) # keeps track of position
+        bottom=pos.copy() # included for completion
+        basis=np.identity(3) # keeps track of rotation, column vectors are the basis
+        pos+=self.LENGTHS[0]*basis[:,2] # adding the z basis, which should be straight up
+        base_rot_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[0]) # rotation is defined counterclockwise, the robot has ccw negative on the base joint
+        
+        pos+=self.LENGTHS[1]*basis[:,2] # adding z basis (straight up) again
+        shoulder_joint=pos.copy()
+        basis=self.rotate_about(basis,1,joint_angles[1]) # correct rotation along the y basis
+
+        pos+=self.LENGTHS[2]*basis[:,2] # along z again
+        elbow_joint=pos.copy()
+        basis=self.rotate_about(basis,1,-joint_angles[2]) # rotation about y, but direction is opposite
+
+        pos+=self.LENGTHS[3]*basis[:,2] # along z
+        rot_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[3]) # about z, opposite again
+
+        pos+=self.LENGTHS[4]*basis[:,2]
+        wrist_flip_joint=pos.copy()
+        basis=self.rotate_about(basis,1,-joint_angles[4]) #about y, negative 
+        pos+=self.LENGTHS[5]*basis[:,2]
+        wrist_joint=pos.copy()
+        basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again
+        pos+=self.LENGTHS[6]*basis[:,2]
+
+        # Correct for the depth sensor offset
+        pos += self.LENGTHS_CAMERA[7] * basis[:, 0] # x axis
+        pos += self.LENGTHS_CAMERA[8] * basis[:, 1] # y axis
+        pos += self.LENGTHS_CAMERA[9] * basis[:, 2] # z axis
+
+        # Normalized vector that describes where the camera is pointing
+        camera_rotation_vector = basis[:, 2] / np.sqrt(sum(basis[:, 2] ** 2))
+        print("Basis")
+        print(basis)
+
+        print("Translation")
+        print(pos * 1000)
+        # print("Camera rotation Vector")
+        # print(camera_rotation_vector)
+        # print(pos)
+
+        a = np.array([1, 0, 0], dtype=np.float64) 
+        b = np.array(camera_rotation_vector, dtype=np.float64) 
+        v = np.cross(a, b) 
+        s = np.linalg.norm(v) 
+        c = np.dot(a, b) 
+        vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]]) 
+        r = np.eye(3) + vx + np.dot(vx,vx) * (1-c)/(s**2) 
+
+        x_angle = np.arccos(camera_rotation_vector[0])
+        y_angle = np.arccos(camera_rotation_vector[1])
+        z_angle = np.arccos(camera_rotation_vector[2])
+        return x_angle, y_angle, z_angle, basis, pos
     #========================= SAVING CAMERA IMAGES ===========================#
 
     # Saves the camera image as a numpy array or to a png to be viewed,
