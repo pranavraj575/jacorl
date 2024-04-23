@@ -60,7 +60,7 @@ class JacoEnv(gym.Env):
                       .0613, # 'palm' of hand to open fingertip
                       .0135, # open fingertip length to closed fingertip length
                       )
-
+        """
         self.LENGTHS_CAMERA=(.1564, # base to rotation joint
                       .1284, # rotation joint to shoulder
                       .410, # shoulder to elbow
@@ -71,6 +71,15 @@ class JacoEnv(gym.Env):
                       -.0275, # x offset of end effector to camera
                       -.066,  # y offset of end effector to camera
                       -.00305, # z offset of end effector to camera
+        )
+        """
+        
+        self.CAMERA_OFFSET=np.array(
+            [
+                      -.0275, # x offset of end effector to camera
+                      -.066,  # y offset of end effector to camera
+                      -.00305, # z offset of end effector to camera
+            ]
         )
         high = np.ones([self.action_dim])
         self.action_space = gym.spaces.Box(-high, high)
@@ -300,8 +309,11 @@ class JacoEnv(gym.Env):
     def get_tip_coord(self):
         return self.get_camera_rotation_and_position()[-1]
 
-    def get_camera_rotation_and_position(self):
-        joint_angles,_,_=self.get_joint_state()
+    def get_camera_rotation_and_position(self,joint_angles=None):
+        """
+        if joint_angles is None:
+            joint_angles,_,_=self.get_joint_state()
+        
         pos=np.array([0.,0.,0.]) # keeps track of position
         bottom=pos.copy() # included for completion
         basis=np.identity(3) # keeps track of rotation, column vectors are the basis
@@ -328,16 +340,48 @@ class JacoEnv(gym.Env):
         wrist_joint=pos.copy()
         basis=self.rotate_about(basis,2,-joint_angles[5]) # about z, negative again
         pos+=self.LENGTHS[6]*basis[:,2]
-
+        
+        
+        all_pos,all_bases=self.get_points_and_bases(joint_angles=joint_angles)
+        
+        print(pos)
+        print(basis)
+        print('should be same')
+        print(all_pos[7])
+        print(all_bases[6]) # this basis is wrist rotation but will be the same
+        """
+        
+        all_pos,all_bases=self.get_points_and_bases(joint_angles=joint_angles)
+        
+        pos,basis=all_pos[7],all_bases[6]
+        
+        
+        """
         # Correct for the depth sensor offset
         pos += self.LENGTHS_CAMERA[7] * basis[:, 0] # x axis
         pos += self.LENGTHS_CAMERA[8] * basis[:, 1] # y axis
         pos += self.LENGTHS_CAMERA[9] * basis[:, 2] # z axis
-
+        """
+        
+        
+        """
+        pos+=self.CAMERA_OFFSET[0]* basis[:, 0] # x axis
+        pos+=self.CAMERA_OFFSET[1]* basis[:, 1] # y axis
+        pos+=self.CAMERA_OFFSET[2]* basis[:, 2] # z axis
+        """
+        
+        pos+=basis@self.CAMERA_OFFSET # vectorized way to say the same thing
+        
+        
         # Normalized vector that describes where the camera is pointing
-        camera_rotation_vector = basis[:, 2] / np.sqrt(sum(basis[:, 2] ** 2))
+        # camera_rotation_vector = basis[:, 2] / np.sqrt(sum(basis[:, 2] ** 2))
+        
+        camera_rotation_vector=basis[:,2] # should already be normalized
+        # print('size')
+        # print(np.linalg.norm(camera_rotation_vector))
+        
         print("Basis")
-        print(basis)
+        print(basis)        
 
         print("Translation")
         print(pos * 1000)
