@@ -242,7 +242,7 @@ def run_sequence():
    all_world_coords = []
 
    for id, point in enumerate(points):
-       env.move_arm(point)
+       env.move_arm(point,degrees=True)
        rospy.sleep(4)
 
        color, depth = take_photo()
