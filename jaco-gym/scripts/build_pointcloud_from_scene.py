@@ -9,7 +9,6 @@ from kortex_api.autogen.client_stubs.VisionConfigClientRpc import VisionConfigCl
 from kortex_api.autogen.client_stubs.DeviceManagerClientRpc import DeviceManagerClient
 from kortex_api.autogen.messages import DeviceConfig_pb2, Session_pb2, DeviceManager_pb2, VisionConfig_pb2
 # Open3d needs to be version 0.14.1 for dumb reasons
-import open3d as o3d
 import matplotlib.pyplot as plt
 from PIL import Image
 from scipy import interpolate
@@ -148,8 +147,6 @@ def get_intrinsic(args):
            W, H = 480, 270
            Fx, Fy = intrinsics.focal_length_x, intrinsics.focal_length_y
            Cx, Cy = intrinsics.principal_point_x, intrinsics.principal_point_y
-           o3d_intrinsics = o3d.camera.PinholeCameraIntrinsic(
-               W, H, Fx, Fy, Cx, Cy)
            
            np_intrinsic = np.array([[Fx, 0, Cx], [0, Fy, Cy], [0, 0, 1]])
            
@@ -157,7 +154,7 @@ def get_intrinsic(args):
            homography = extract_homography(extrinsics)
 
 
-   return o3d_intrinsics, np_intrinsic, homography
+   return np_intrinsic, homography
 
 # Use the forward kinematic algorithms to determine rotation and translation of camera and return 4 by 4 marix
 # describing movement
@@ -180,10 +177,7 @@ def get_extrinsic():
 # Take a color and depth image and return and o3d PointCloud object containing the
 # pointcloud given by the two images
 def image_to_point_clouds(color, depth, args):
-   color_o3d = o3d.geometry.Image(color.astype(np.uint8))
-   depth_o3d = o3d.geometry.Image(depth.astype(np.float32))
-
-   intrinsic_o3d, np_intrinsic, homography = get_intrinsic(args)
+   np_intrinsic, homography = get_intrinsic(args)
    extrinsic_o3d, rot_matrix, trans_matrix = get_extrinsic()
 
    x_data, y_data, z_data = [], [], []
@@ -223,13 +217,8 @@ def image_to_point_clouds(color, depth, args):
    ax.set_ylim3d(np.median(y_data) - 500, np.median(y_data) + 500)
    ax.set_zlim3d(np.median(z_data) - 500, np.median(z_data) + 500)
    plt.show()
-
-   rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
-       color_o3d, depth_o3d, convert_rgb_to_intensity=False, depth_trunc=1)
-   pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
-       rgbd, intrinsic_o3d, extrinsic_o3d)
    
-   return pcd, world_coords
+   return
 
 
 # Take RGB and depth photo at arm position and return both photos, where color photo
@@ -249,7 +238,6 @@ def click_event(event, x, y, flags, params):
 
 # Sequence manager that moves arm, takes photos and merges pointcloud
 def run_sequence():
-   pcd_combined = o3d.geometry.PointCloud()
    args = utilities.parseConnectionArguments()
    all_world_coords = []
 
@@ -263,12 +251,7 @@ def run_sequence():
        # cv2.waitKey(0)
        save_images(id, color, depth)
 
-       pcd, world_coords = image_to_point_clouds(color, depth, args)
-       #print(len(pcd.points))
-       pcd_combined += pcd
-       all_world_coords.append(world_coords)
-       rospy.sleep(1)
-
+       image_to_point_clouds(color, depth, args)
    
    fig = plt.figure()
    ax = plt.axes(projection='3d')
@@ -299,10 +282,6 @@ def run_sequence():
    ax.set_ylim3d(np.median(y_data) - diff, np.median(y_data) + diff)
    ax.set_zlim3d(np.median(z_data) - diff, np.median(z_data) + diff)
    plt.show()
-
-
-   #print(len(pcd_combined.points))
-   # o3d.visualization.draw_geometries([pcd_combined])
 
 
 if __name__ == "__main__":
