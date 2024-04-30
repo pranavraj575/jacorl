@@ -252,15 +252,23 @@ def click_event(event, x, y, flags, params):
    if event == cv2.EVENT_LBUTTONDOWN: 
       #print(f"(X, Y) coordinate: ({x}, {y})")
 """
+thingies=[
+    (.5,.1,0.,np.pi/4,0.),
+    (.5,.1,0.,np.pi/4,np.pi/2),
 
+]
 # Sequence manager that moves arm, takes photos and merges pointcloud
 def run_sequence():
     args = utilities.parseConnectionArguments()
     all_point_cloud=[]
     
     for id, point in enumerate(points):
+        continue
         env.move_arm(point,degrees=True)
-        env.look_at_point(.35,-.25,.0,theta=-np.pi/2,phi=np.pi/5,global_angles=True)
+    for (x,y,z,phi,theta) in thingies:
+        env.move_arm(np.array([0.,0.,0.,0.,0.,0.]),degrees=True)
+        
+        env.look_at_point(x,y,z,theta=theta,phi=phi ,global_angles=True)
         rospy.sleep(4)
         color, depth = take_photo()
         # cv2.imshow("Color image", color / 255)
@@ -268,7 +276,7 @@ def run_sequence():
         # cv2.waitKey(0)
         # save_images(id, color, depth)
         
-        point_cloud=image_to_point_clouds(color, depth, args,simulated=True,plot=False)
+        point_cloud=image_to_point_clouds(color, depth, args,simulated=False,plot=False)
         all_point_cloud+=point_cloud
     all_point_cloud=np.array(all_point_cloud)
     
