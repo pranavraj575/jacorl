@@ -43,6 +43,8 @@ class JacoGazeboEnv(JacoEnv):
             
         self.sub_topic="/gazebo/model_states"
         self.sub=rospy.Subscriber(self.sub_topic,ModelStates,_call_model_data)
+        
+        self.is_simulation=True
 
     #========================== GYM FUNCTIONS ============================#
     def close(self):

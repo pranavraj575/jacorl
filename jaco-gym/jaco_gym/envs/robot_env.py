@@ -162,6 +162,8 @@ class JacoEnv(gym.Env):
 
         self._clear_faults()
         self._notif_subscription() # Activate the action notifications
+        
+        self.is_simulation=False
 
     #========================== GYM FUNCTIONS ============================#
 
