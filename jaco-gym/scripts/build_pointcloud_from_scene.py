@@ -260,6 +260,7 @@ def run_sequence():
     
     for id, point in enumerate(points):
         env.move_arm(point,degrees=True)
+        env.look_at_point(.35,-.25,.0,theta=-np.pi/2,phi=np.pi/5,global_angles=True)
         rospy.sleep(4)
         color, depth = take_photo()
         # cv2.imshow("Color image", color / 255)
